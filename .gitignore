@@ -1,0 +1,8 @@
+build/
+dist/
+__pycache__/
+*.pyc
+fits_viewer_settings.json
+run_log.txt
+build_log.txt
+.DS_Store
