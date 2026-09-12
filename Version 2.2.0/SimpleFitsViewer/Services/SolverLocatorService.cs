@@ -36,7 +36,12 @@ public static class SolverLocatorService
 
     private static string? FindSolverExe(SolverConfig cfg)
     {
-        if (!string.IsNullOrWhiteSpace(cfg.SolverExePath) && File.Exists(cfg.SolverExePath))
+        // An explicit override is authoritative: return it verbatim, existing or not, and let
+        // Location.SolverFound report whether it's valid. Falling back to auto-detect when the
+        // override is missing would silently mask a bad path -- the settings dialog would show the
+        // real install as "found" while the user believes their (bad) path is in use. Only when the
+        // override is blank do we auto-discover an installed StarFix.
+        if (!string.IsNullOrWhiteSpace(cfg.SolverExePath))
             return cfg.SolverExePath;
 
         foreach (var baseDir in CandidateInstallDirs())
@@ -69,7 +74,9 @@ public static class SolverLocatorService
 
     private static string? FindCatalogDir(SolverConfig cfg)
     {
-        if (!string.IsNullOrWhiteSpace(cfg.CatalogDir) && Directory.Exists(cfg.CatalogDir))
+        // Same rule as the solver: an explicit override is used verbatim (Location.CatalogFound
+        // validates it), no silent fallback to auto-detect that would hide a bad path.
+        if (!string.IsNullOrWhiteSpace(cfg.CatalogDir))
             return cfg.CatalogDir;
 
         // Prefer StarFix's own recorded catalog path -- the user may have installed it off the

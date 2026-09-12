@@ -135,8 +135,14 @@ public class PlateSolverSettingsWindow : Window
     private void RefreshStatus()
     {
         var loc = SolverLocatorService.Locate(_cfg);
-        string solver = loc.SolverFound ? $"found: {loc.SolverExe}" : "NOT found";
-        string catalog = loc.CatalogFound ? $"found: {loc.CatalogDir}" : "NOT found";
+        // When not found, show the path that was actually checked -- if an override is set, that's
+        // the bad path; if blank, say so (auto-detect found nothing).
+        string solver = loc.SolverFound ? $"found: {loc.SolverExe}"
+            : loc.SolverExe is not null ? $"NOT found at the path you set: {loc.SolverExe}"
+            : "NOT found (no StarFix install auto-detected)";
+        string catalog = loc.CatalogFound ? $"found: {loc.CatalogDir}"
+            : loc.CatalogDir is not null ? $"NOT found (no pixel_*.npz) at the path you set: {loc.CatalogDir}"
+            : "NOT found (no StarFix catalog auto-detected)";
         _status.Text = $"Solver: {solver}\nCatalog: {catalog}\n"
                      + (loc.Ready ? "Ready to plate solve." : "Plate solving is unavailable until both are found.");
         _status.Foreground = new SolidColorBrush(Color.Parse(loc.Ready ? "#a3be8c" : "#ebcb8b"));
