@@ -512,7 +512,8 @@ public partial class MainWindowViewModel : ViewModelBase
             if (name.Length == 0)
             {
                 SetSolveStatus("This frame has no RA/DEC in its header, so the solver has no "
-                             + "starting point. Type the target name in Find Target first.", Brushes.Orange);
+                             + "starting point. Type the target name in the Find Target box below, "
+                             + "then press Plate Solve again (not Find).", Brushes.Orange);
                 return;
             }
             SetSolveStatus($"No header position -- resolving '{name}' for a solve hint…", Brushes.Gray);
