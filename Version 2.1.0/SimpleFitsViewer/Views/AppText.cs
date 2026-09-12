@@ -19,6 +19,8 @@ public static class AppText
           • Left-click on a star — auto-centroid and size an aperture (see below)
           • Left-click-drag on an existing aperture — move the whole aperture/annulus
             set without changing its size
+          • The readout beside the filename follows the cursor: X, Y, pixel value
+            in ADU, plus RA/Dec on a plate-solved frame (see PLATE-SOLVED FRAMES)
 
         3. HISTOGRAM / STRETCH
           • Auto Stretch — 1st/99th-percentile linear stretch
@@ -168,14 +170,91 @@ public static class AppText
           • Tools > Diagnostics — a log of errors/events encountered this
             session, with Save and Clear
 
-        Not yet in this version: WCS/RA-Dec readout, colormap variety beyond
-        grayscale.
+        11. PLATE-SOLVED FRAMES (WCS)
+          • If the file carries a TAN world-coordinate solution, the "WCS" row in
+            Results shows the projection, whether SIP distortion terms are
+            present, and the plate scale in arcsec/pixel. "not plate solved"
+            means the header has no usable solution -- solve the frame first
+            (StarFix, ASTAP, Astrometry.net...) to enable everything below.
+          • The readout beside the filename tracks the cursor: X, Y, the pixel
+            value in ADU, and RA/Dec when a solution is present.
+          • "Center (RA, Dec)" in Results gives the sky position of the current
+            aperture centre.
+
+          FIND TARGET
+          • Type a name and press Find (or Enter) to place the aperture on it.
+            The box is pre-filled from the frame's OBJECT keyword when there is
+            one; a name you type yourself is not overwritten when the next file
+            loads.
+          • Three catalogues are tried in order: AAVSO VSX (variable stars),
+            then the NASA Exoplanet Archive (host star or planet name), then
+            SIMBAD. SIMBAD is searched by identifier alias, so any known
+            designation works, and spacing/case do not matter ("M13", "m 13").
+          • Proper motion is applied. This is not cosmetic: the catalogues quote
+            positions at DIFFERENT reference epochs (VSX and SIMBAD at J2000,
+            the Exoplanet Archive at J2015.5), and on a real 2026 frame
+            TOI-4479's uncorrected Exoplanet Archive position landed 6.75 px
+            (1.81") from the star -- far enough that the centroid search had no
+            margin left, and a slightly different offset would have settled on
+            the star's wing rather than its peak, biasing the aperture centre by
+            over a pixel with nothing on screen to reveal it. Propagating to the
+            frame's own DATE-OBS cuts the error to 1.95 px (0.52"), which is the
+            plate solve's own accuracy floor. The status line always says which
+            epoch was used and whether a correction was applied.
+          • The status line also reports how far the final lock sits from the
+            catalogue position, in pixels and arcsec. That is the number that
+            tells a correct lock apart from a snap onto a close neighbour --
+            anything past 3" is flagged for a look. If no star is found at all,
+            the aperture is placed at the catalogue position with its existing
+            geometry, and says so.
+          • Tools > Diagnostics records every lookup: which catalogues were
+            tried, what each returned, the epoch handling, and the final pixel
+            position. Check there first when a name does not resolve.
+
+        Not yet in this version: colormap variety beyond grayscale; pixel data
+        for tile-compressed (.fz) files.
         """;
 
     public const string RevisionHistory = """
         SIMPLE FITS VIEWER — REVISION HISTORY (C# / Avalonia port)
 
         v2.1.0 — 2026-09-11
+
+          • New: WCS support. A TAN plate solution in the header (with SIP
+            distortion terms if present) is now read and used. The cursor
+            readout gains RA/Dec, Results gains the aperture's sky position and
+            a "WCS" row naming the projection and plate scale. Validated
+            against astropy over a 121-point grid on two real frames -- one with
+            SIP, one without -- agreeing to 0.0002 mas. Building it turned up a
+            real trap: a header can carry BOTH a CD matrix and CDELT+PC, they
+            can disagree (0.106% on one real frame, ~3.3 px by the corners), and
+            PC+CDELT is the one that takes precedence.
+
+          • New: Find Target. Type a name, press Find, and the aperture is
+            placed on it -- looked up in AAVSO VSX, then the NASA Exoplanet
+            Archive, then SIMBAD (by identifier alias, so any known designation
+            works). The name box pre-fills from the frame's OBJECT keyword.
+            Requires a plate-solved frame, and says so plainly when there isn't
+            one.
+
+            Proper motion is applied, because ignoring it does not work: the
+            three catalogues quote positions at DIFFERENT reference epochs (VSX
+            and SIMBAD at J2000, the Exoplanet Archive at J2015.5 -- measured,
+            by differencing the two services against their own proper motions on
+            two stars, not assumed). On a real 2026 frame TOI-4479's
+            uncorrected Exoplanet Archive position fell 6.75 px from the star --
+            right at the limit of the centroid search, with zero margin, where a
+            slightly different offset settles on the star's wing and biases the
+            aperture centre by over a pixel without failing visibly.
+            Propagating to the frame's DATE-OBS brought it to 1.95 px. Assuming
+            the wrong epoch (J2000) would have made it 8.86 px -- worse than no
+            correction at all, which is why the epochs were measured per source
+            rather than guessed.
+
+            The status line always reports which epoch was used and how far the
+            final lock sits from the catalogue position, flagging anything past
+            3" -- that distance is what distinguishes a correct lock from a snap
+            onto a close neighbour. Every lookup is logged to Diagnostics.
 
           • Changed: aperture auto-sizing now picks the radius that maximises
             SNR, walking the curve of growth outward, instead of scaling a

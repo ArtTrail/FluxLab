@@ -39,9 +39,31 @@ public static class StarCentroid
     /// </summary>
     /// <param name="gainEPerAdu">Optional e-/ADU. Lets the radius search weight shot noise against
     /// sky noise correctly; without it the search falls back to a sky-limited approximation.</param>
+    /// <param name="peakSearchRadius">
+    /// How far from the seed, in pixels, to look for the star's peak. Defaults to the tight value
+    /// tuned for a mouse click, where the user is pointing directly at the star and a wide window
+    /// would only risk snapping to a brighter neighbour.
+    ///
+    /// A catalogue-derived seed has a genuinely larger error budget and should pass a larger value.
+    /// Measured on a real plate-solved frame: TOI-4479's NASA Exoplanet Archive position lands
+    /// 6.75 px from the star's actual centroid, right at the edge of the default window. Sweeping
+    /// the radius on that seed shows what "too tight" actually looks like -- not a null return, but
+    /// a centroid that silently settles on the star's wing instead of its peak:
+    ///     +/-3 px -> (3339.38, 2028.97)   1.9 px from the true centroid
+    ///     +/-4,5  -> (3339.93, 2028.42)   1.4 px off
+    ///     +/-6..9 -> (3339.97, 2027.16)   0.12 px off -- converged
+    /// So the default happened to converge on this seed, with zero margin, and a slightly different
+    /// offset would have biased the aperture centre by over a pixel without any visible failure.
+    /// Proper-motion propagation to the frame's epoch cuts the seed error to 1.95 px, comfortably
+    /// inside; the wider window is for targets whose catalogue entry carries no proper motion.
+    /// Clamped to the analysis box either way.
+    /// </param>
     public static Result? TryCentroid(
-        float[] pixels, int width, int height, double seedX, double seedY, double? gainEPerAdu = null)
+        float[] pixels, int width, int height, double seedX, double seedY, double? gainEPerAdu = null,
+        int peakSearchRadius = PeakSearch)
     {
+        peakSearchRadius = Math.Clamp(peakSearchRadius, 1, Box);
+
         int x0 = Math.Max(0, (int)seedX - Box), x1 = Math.Min(width, (int)seedX + Box + 1);
         int y0 = Math.Max(0, (int)seedY - Box), y1 = Math.Min(height, (int)seedY + Box + 1);
         if (x1 <= x0 || y1 <= y0) return null;
@@ -64,8 +86,8 @@ public static class StarCentroid
 
         // Peak search in a small window around the seed
         int pxC = (int)seedX, pyC = (int)seedY;
-        int sx0 = Math.Max(x0, pxC - PeakSearch), sx1 = Math.Min(x1 - 1, pxC + PeakSearch);
-        int sy0 = Math.Max(y0, pyC - PeakSearch), sy1 = Math.Min(y1 - 1, pyC + PeakSearch);
+        int sx0 = Math.Max(x0, pxC - peakSearchRadius), sx1 = Math.Min(x1 - 1, pxC + peakSearchRadius);
+        int sy0 = Math.Max(y0, pyC - peakSearchRadius), sy1 = Math.Min(y1 - 1, pyC + peakSearchRadius);
 
         double peakVal = double.NegativeInfinity;
         int peakX = pxC, peakY = pyC;

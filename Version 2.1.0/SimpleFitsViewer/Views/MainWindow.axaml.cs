@@ -138,6 +138,13 @@ public partial class MainWindow : Window
     private void OnImagePointerMoved(object? sender, PointerEventArgs e)
     {
         if (sender is not Image image || DataContext is not MainWindowViewModel vm) return;
+
+        // Live cursor readout runs on every move, before the drag-only early-returns below --
+        // hovering must report X/Y/ADU (and RA/Dec when solved) whether or not a drag is in
+        // progress.
+        var p = e.GetPosition(image);
+        vm.UpdateCursorReadout(p.X, p.Y);
+
         if (!_leftDragCandidate) return;
         if (!e.GetCurrentPoint(image).Properties.IsLeftButtonPressed) return;
 

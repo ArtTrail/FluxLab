@@ -43,7 +43,11 @@
                 <TextBlock Text="Scroll wheel = zoom at cursor  |  Middle-drag = pan"
                            Foreground="#555577" FontStyle="Italic" VerticalAlignment="Center" Margin="12,0,0,0"/>
             </StackPanel>
-            <TextBlock Grid.Row="1" Text="{Binding FileNameText}" Foreground="#8888bb" Margin="0,0,0,6"/>
+            <Grid Grid.Row="1" ColumnDefinitions="Auto,*" Margin="0,0,0,6">
+                <TextBlock Grid.Column="0" Text="{Binding FileNameText}" Foreground="#8888bb"/>
+                <TextBlock Grid.Column="1" Text="{Binding CursorText}" Foreground="#aaccff"
+                           HorizontalAlignment="Right" FontFamily="Consolas,Menlo,monospace"/>
+            </Grid>
 
             <ScrollViewer Name="ImageScroller" Grid.Row="2"
                           HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
@@ -139,6 +143,21 @@
                     <Button Content="Clear Aperture" Command="{Binding ClearApertureCommand}"
                             Background="#6a1a1a" Foreground="White" HorizontalAlignment="Stretch" Margin="0,0,0,10"/>
 
+                    <TextBlock Text="Find Target" FontWeight="Bold" Foreground="#66aaff" Margin="0,4,0,2"/>
+                    <TextBlock Text="Looks the name up in VSX, then the NASA Exoplanet Archive, then SIMBAD, and places the aperture there. Needs a plate-solved frame."
+                               Foreground="#555577" FontStyle="Italic" TextWrapping="Wrap" Margin="0,0,0,3"/>
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBox Grid.Column="0" Text="{Binding TargetNameText}"
+                                 Watermark="Target name, e.g. TOI-4479 or RR Lyr">
+                            <TextBox.KeyBindings>
+                                <KeyBinding Gesture="Enter" Command="{Binding FindTargetCommand}"/>
+                            </TextBox.KeyBindings>
+                        </TextBox>
+                        <Button Grid.Column="1" Content="Find" Command="{Binding FindTargetCommand}" Margin="4,0,0,0"/>
+                    </Grid>
+                    <TextBlock Text="{Binding TargetStatusText}" Foreground="{Binding TargetStatusColor}"
+                               TextWrapping="Wrap" Margin="0,3,0,10"/>
+
                     <TextBlock Text="Geometry (pixels)" FontWeight="Bold" Foreground="#66aaff" Margin="0,4,0,2"/>
                     <TextBlock Text="Click a star = re-center + auto-size.  Click-drag an existing set = move it without resizing."
                                Foreground="#555577" FontStyle="Italic" TextWrapping="Wrap" Margin="0,0,0,3"/>
@@ -183,9 +202,13 @@
                     </Grid>
 
                     <TextBlock Text="Results" FontWeight="Bold" Foreground="#66aaff" Margin="0,10,0,2"/>
-                    <Grid ColumnDefinitions="140,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="2">
+                    <Grid ColumnDefinitions="140,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="2">
                         <TextBlock Grid.Row="0" Grid.Column="0" Text="Center (X, Y)" Foreground="#cccccc"/>
                         <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding CenterText}" Foreground="White" FontWeight="Bold"/>
+                        <TextBlock Grid.Row="10" Grid.Column="0" Text="Center (RA, Dec)" Foreground="#cccccc"/>
+                        <TextBlock Grid.Row="10" Grid.Column="1" Text="{Binding ApertureRaDecText}" Foreground="White" FontWeight="Bold" TextWrapping="Wrap"/>
+                        <TextBlock Grid.Row="11" Grid.Column="0" Text="WCS" Foreground="#cccccc"/>
+                        <TextBlock Grid.Row="11" Grid.Column="1" Text="{Binding WcsStatusText}" Foreground="White" FontWeight="Bold" TextWrapping="Wrap"/>
                         <TextBlock Grid.Row="1" Grid.Column="0" Text="Aperture pixels" Foreground="#cccccc"/>
                         <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding ApertureCountText}" Foreground="White" FontWeight="Bold"/>
                         <TextBlock Grid.Row="2" Grid.Column="0" Text="Sky median/px" Foreground="#cccccc"/>

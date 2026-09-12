@@ -93,6 +93,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private bool _suppressProfileSync;     // true while SyncProfileTextFromResolved is pushing loaded/resolved values into the Text properties
     private bool _suppressGeometrySync;    // true while SyncGeometryTextFromCurrent is pushing centroid/drag-derived values into the Text properties
     private FitsHeader _header = new(new());
+    private WcsSolution? _wcs;   // null when the frame carries no usable TAN solution
     private string? _currentFilePath;
     private readonly CameraProfile _profile;
 
@@ -274,6 +275,189 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private string _gainSourceText = "—";
     [ObservableProperty] private string _fullWellSourceText = "—";
     [ObservableProperty] private string _colorFilterText = "—";
+    [ObservableProperty] private string _wcsStatusText = "—";
+    [ObservableProperty] private string _cursorText = "";
+    [ObservableProperty] private string _apertureRaDecText = "—";
+
+    /// <summary>Live X/Y + ADU under the cursor, with RA/Dec when the frame is plate solved.
+    /// Called on every pointer move over the image.</summary>
+    public void UpdateCursorReadout(double x, double y)
+    {
+        if (_pixels.Length == 0 || x < 0 || y < 0 || x >= _width || y >= _height)
+        {
+            CursorText = "";
+            return;
+        }
+
+        int ix = (int)x, iy = (int)y;
+        float v = _pixels[iy * _width + ix];
+        string s = $"X {ix}  Y {iy}   {v:N0} ADU";
+
+        if (_wcs is not null)
+        {
+            var (ra, dec) = _wcs.PixelToWorld(x, y);
+            s += $"   {WcsSolution.FormatRa(ra)}  {WcsSolution.FormatDec(dec)}";
+        }
+        CursorText = s;
+    }
+
+    private void UpdateApertureRaDec()
+    {
+        if (_wcs is null || _apertureCenter is null) { ApertureRaDecText = "—"; return; }
+        var (ra, dec) = _wcs.PixelToWorld(_apertureCenter.Value.X, _apertureCenter.Value.Y);
+        ApertureRaDecText = $"{WcsSolution.FormatRa(ra)}  {WcsSolution.FormatDec(dec)}";
+    }
+
+    // ---- Find Target by name (VSX / NEA / SIMBAD -> WCS -> aperture) ----
+
+    [ObservableProperty] private string _targetNameText = "";
+    [ObservableProperty] private string _targetStatusText = "";
+    [ObservableProperty] private IBrush _targetStatusColor = Brushes.Gray;
+    [ObservableProperty] private bool _isResolvingTarget;
+
+    /// <summary>The OBJECT value this class last auto-filled into TargetNameText. Kept so the next
+    /// file can refill the box without silently overwriting a name the user typed themselves --
+    /// only an empty box or one still holding the previous file's OBJECT gets replaced.</summary>
+    private string _seededTargetName = "";
+
+    private void SeedTargetNameFromHeader()
+    {
+        string obj = _header.Get("OBJECT").Trim();
+        if (obj.Length == 0) return;
+        if (TargetNameText.Trim().Length == 0 || TargetNameText.Trim() == _seededTargetName)
+        {
+            TargetNameText = obj;
+            _seededTargetName = obj;
+        }
+    }
+
+    private void SetTargetStatus(string message, IBrush color)
+    {
+        TargetStatusText = message;
+        TargetStatusColor = color;
+    }
+
+    /// <summary>
+    /// Resolves the typed target name to RA/Dec, converts that through the frame's WCS to a pixel
+    /// position, and places the aperture there (re-centroiding and auto-sizing exactly as a manual
+    /// click does, so the measurement path is identical -- resolution only supplies the seed).
+    /// </summary>
+    [RelayCommand]
+    private async Task FindTargetAsync()
+    {
+        string name = TargetNameText.Trim();
+        if (name.Length == 0) { SetTargetStatus("Type a target name first.", Brushes.Orange); return; }
+        if (_pixels.Length == 0) { SetTargetStatus("Open a FITS file first.", Brushes.Orange); return; }
+        if (_wcs is null)
+        {
+            SetTargetStatus("This frame has no WCS -- a name can't be turned into a pixel position. "
+                          + "Plate solve it first.", Brushes.Orange);
+            return;
+        }
+
+        IsResolvingTarget = true;
+        try
+        {
+            var progress = new Progress<string>(m => SetTargetStatus(m, Brushes.Gray));
+            var hit = await TargetResolverService.ResolveAsync(name, progress);
+
+            if (hit is null)
+            {
+                SetTargetStatus($"'{name}' not found in VSX, NEA, or SIMBAD. "
+                              + "See Tools > Diagnostics for what each service returned.", Brushes.Orange);
+                return;
+            }
+
+            // Propagate the catalogue position to this frame's own epoch. Each source quotes its
+            // coordinates at a different reference epoch (see ResolveResult) -- on TOI-4479 this
+            // step moves the seed from 6.75 px off the star, right at the edge of the centroid
+            // search window, to 1.95 px well inside it.
+            double ra = hit.Ra, dec = hit.Dec;
+            string pmNote;
+            double? frameEpoch = Astrometry.TryGetObservationEpochJyear(_header);
+            if (hit.PmRaMasPerYr is { } pmRa && hit.PmDecMasPerYr is { } pmDec && frameEpoch is { } epoch)
+            {
+                (ra, dec) = Astrometry.ApplyProperMotion(ra, dec, pmRa, pmDec, hit.EpochJyear, epoch);
+                pmNote = $"proper motion applied, J{hit.EpochJyear:F1} -> {epoch:F2}";
+            }
+            else if (frameEpoch is null)
+            {
+                pmNote = $"J{hit.EpochJyear:F1} position, no proper-motion correction "
+                       + "(frame has no DATE-OBS)";
+            }
+            else
+            {
+                pmNote = $"J{hit.EpochJyear:F1} position, no proper-motion correction "
+                       + $"({hit.Source} lists no proper motion)";
+            }
+
+            var (px, py) = _wcs.WorldToPixel(ra, dec);
+            string coords = $"{WcsSolution.FormatRa(ra)} {WcsSolution.FormatDec(dec)}";
+
+            if (px < 0 || py < 0 || px >= _width || py >= _height)
+            {
+                // Report how far outside, in pixels -- a near miss (a few px off an edge) reads
+                // very differently from a wrong field entirely, and the number distinguishes them.
+                double dx = px < 0 ? -px : (px >= _width ? px - (_width - 1) : 0);
+                double dy = py < 0 ? -py : (py >= _height ? py - (_height - 1) : 0);
+                SetTargetStatus($"{hit.MatchedName} ({hit.Source}) is at {coords}, which falls "
+                              + $"outside this frame -- {Math.Max(dx, dy):F0} px past the edge "
+                              + $"(x={px:F1}, y={py:F1} in a {_width}x{_height} image).", Brushes.Orange);
+                DiagnosticsLog.Log($"[FindTarget] '{name}' -> {hit.MatchedName} at {coords} maps to "
+                                 + $"x={px:F2}, y={py:F2}, outside {_width}x{_height}.");
+                return;
+            }
+
+            // A catalogue seed carries more positional error than a mouse click, so the peak search
+            // is widened -- in arcsec, since that's the unit the error is actually budgeted in,
+            // which keeps it sensible across wildly different plate scales (at 0.27"/px this is
+            // ~22 px; on a 1.46"/px MObs frame the floor of 6 px already covers 8.7").
+            const double SeedSearchArcsec = 6.0;
+            int searchPx = (int)Math.Round(SeedSearchArcsec / Math.Max(_wcs.PixelScaleArcsec, 1e-6));
+            searchPx = Math.Clamp(searchPx, 6, 25);
+
+            bool centroided = PlaceApertureAt(px, py, searchPx);
+
+            string note;
+            IBrush color;
+            if (!centroided)
+            {
+                note = "no star-like signal within " + $"{searchPx} px -- aperture placed at the "
+                     + "catalogue position with its existing geometry";
+                color = Brushes.Orange;
+            }
+            else
+            {
+                // Always report how far the lock moved from the catalogue position. This is the one
+                // number that distinguishes a correct lock from a snap onto the wrong star, so it's
+                // shown every time rather than only when something looks wrong.
+                var c = _apertureCenter!.Value;
+                double moved = Math.Sqrt((c.X - px) * (c.X - px) + (c.Y - py) * (c.Y - py));
+                double movedArcsec = moved * _wcs.PixelScaleArcsec;
+                note = $"locked on a star {moved:F1} px ({movedArcsec:F2}\") away and auto-sized";
+                // Past ~3" the lock is far enough from the catalogue position to be a different
+                // star rather than residual astrometric error, so it's flagged for a look.
+                color = movedArcsec <= 3.0 ? Brushes.LightGreen : Brushes.Orange;
+                if (movedArcsec > 3.0) note += " -- check this is the right star";
+            }
+
+            SetTargetStatus($"{hit.MatchedName} ({hit.Source}) at {coords}, {pmNote}. "
+                          + $"Frame position x={px:F1}, y={py:F1}; {note}.", color);
+            DiagnosticsLog.Log($"[FindTarget] '{name}' -> {hit.MatchedName} ({hit.Source}) {coords} "
+                             + $"[{pmNote}] -> x={px:F2}, y={py:F2}; searchPx={searchPx}, "
+                             + $"centroided={centroided}"
+                             + (centroided ? $", center=({_apertureCenter!.Value.X:F2}, {_apertureCenter!.Value.Y:F2})" : ""));
+        }
+        catch (Exception ex)
+        {
+            DiagnosticsLog.LogException($"Finding target '{name}'", ex);
+            SetTargetStatus($"Lookup failed: {ex.Message}", Brushes.Orange);
+        }
+        finally
+        {
+            IsResolvingTarget = false;
+        }
+    }
     [ObservableProperty] private string _totalElectronsText = "—";
 
     // Exposure Meter
@@ -399,6 +583,13 @@ public partial class MainWindowViewModel : ViewModelBase
         CameraProfileResolver.ResolveGain(_profile, _header);
         CameraProfileResolver.ResolveFullWell(_profile, _header);   // depends on both of the above
         ColorFilterText = CameraProfileResolver.DescribeColorFilter(_header);
+
+        _wcs = WcsSolution.TryParse(_header);
+        WcsStatusText = _wcs is null
+            ? "not plate solved"
+            : $"TAN{(_wcs.HasSip ? " + SIP" : "")}, {_wcs.PixelScaleArcsec:F3}\"/px";
+        CursorText = "";
+        SeedTargetNameFromHeader();
         SyncProfileTextFromResolved();
 
         FileNameText = System.IO.Path.GetFileName(path);
@@ -639,11 +830,25 @@ public partial class MainWindowViewModel : ViewModelBase
 
     /// <summary>Called by the view when the user clicks on the displayed image, in native
     /// image-pixel coordinates (0,0 = top-left).</summary>
-    public void OnImageClicked(double px, double py)
-    {
-        if (_pixels.Length == 0) return;
+    public void OnImageClicked(double px, double py) => PlaceApertureAt(px, py);
 
-        var found = StarCentroid.TryCentroid(_pixels, _width, _height, px, py, _profile.GainEPerAdu);
+    /// <summary>
+    /// Centroids near (px, py), places and auto-sizes the aperture set there, and re-measures.
+    /// Returns true if a star was actually found -- false means the centroid failed and the
+    /// aperture was simply recentred on the given point with its existing geometry (matching the
+    /// Python app's behavior). Shared by manual clicks and by Find Target, so a name-resolved
+    /// placement goes through the exact same path as a click and can't drift from it.
+    /// </summary>
+    /// <param name="peakSearchRadius">How far from (px, py) to hunt for the star, in pixels. Null
+    /// keeps StarCentroid's click-tuned default; Find Target passes a wider value because a
+    /// catalogue position has a larger error budget than a mouse click.</param>
+    private bool PlaceApertureAt(double px, double py, int? peakSearchRadius = null)
+    {
+        if (_pixels.Length == 0) return false;
+
+        var found = peakSearchRadius is { } searchPx
+            ? StarCentroid.TryCentroid(_pixels, _width, _height, px, py, _profile.GainEPerAdu, searchPx)
+            : StarCentroid.TryCentroid(_pixels, _width, _height, px, py, _profile.GainEPerAdu);
         if (found is { } r)
         {
             _apertureCenter = (r.CenterX, r.CenterY);
@@ -653,14 +858,13 @@ public partial class MainWindowViewModel : ViewModelBase
         }
         else
         {
-            // No star-like signal near the click -- just recenter, keep current geometry,
-            // matching the Python app's behavior.
             _apertureCenter = (px, py);
         }
 
         SyncGeometryTextFromCurrent();
         UpdateApertureOverlay();
         Recompute();
+        return found is not null;
     }
 
     /// <summary>Current aperture center, for the view's click-vs-drag gesture handling on the
@@ -826,7 +1030,8 @@ public partial class MainWindowViewModel : ViewModelBase
         }
 
         CenterText = $"{c.X:F1}, {c.Y:F1}";
-        ApertureCountText = result.Aperture.NAperturePixels.ToString();
+        UpdateApertureRaDec();
+        ApertureCountText = result.Aperture.NAperturePixels.ToString("F1");
         SkyMedianText = result.Aperture.SkyMedian.ToString("F3");
         SkySigmaText = result.Aperture.SkySigma.ToString("F3");
         PeakText = result.Aperture.Peak.ToString("F2");
@@ -858,6 +1063,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private void ClearResults()
     {
         CenterText = ApertureCountText = SkyMedianText = SkySigmaText = PeakText = TotalElectronsText = "—";
+        ApertureRaDecText = "—";
         MeterStateText = "—";
         MeterRecommendationText = "";
         MeterColor = Brushes.White;
