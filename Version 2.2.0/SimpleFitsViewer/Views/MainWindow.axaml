@@ -7,6 +7,7 @@
         x:Class="SimpleFitsViewer.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Title="FluxLab  v2.2.0"
+        Icon="avares://SimpleFitsViewer/Assets/FluxLab.ico"
         Width="1200" Height="780"
         Background="#1e1e2e">
 
@@ -14,20 +15,33 @@
         <vm:MainWindowViewModel/>
     </Design.DataContext>
 
-    <Grid RowDefinitions="Auto,*">
-        <Menu Grid.Row="0" Background="#141420">
-            <MenuItem Header="Tools">
+    <Grid RowDefinitions="Auto,Auto,*">
+        <Menu Grid.Row="0">
+            <MenuItem Header="_Tools">
                 <MenuItem Header="FITS Header..." Click="OnFitsHeaderClicked"/>
                 <MenuItem Header="Diagnostics" Click="OnDiagnosticsClicked"/>
             </MenuItem>
-            <MenuItem Header="Help">
+            <MenuItem Header="_Help">
                 <MenuItem Header="User Guide" Click="OnUserGuideClicked"/>
                 <MenuItem Header="Revision History" Click="OnRevisionHistoryClicked"/>
-                <MenuItem Header="About" Click="OnAboutClicked"/>
+                <Separator/>
+                <MenuItem Header="About FluxLab" Click="OnAboutClicked"/>
             </MenuItem>
         </Menu>
 
-    <Grid Grid.Row="1" ColumnDefinitions="*,380">
+        <!-- Header banner: logo + title, bigger than just the window/taskbar icon. Matches the
+             shared banner in StarFix / VariLab / TransitLab. -->
+        <Border Grid.Row="1" Background="{StaticResource BrushBg2}" Padding="16,10,16,10">
+            <StackPanel Orientation="Horizontal" Spacing="14" VerticalAlignment="Center">
+                <Image Source="avares://SimpleFitsViewer/Assets/FluxLab_logo.png" Width="104" Height="104"/>
+                <StackPanel VerticalAlignment="Center" Spacing="0">
+                    <TextBlock Classes="title" Text="FluxLab"/>
+                    <TextBlock Classes="hint" Text="Aperture photometry &amp; exposure metering for FITS images"/>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+    <Grid Grid.Row="2" ColumnDefinitions="*,380">
 
         <!-- Image area -->
         <Grid Grid.Column="0" RowDefinitions="Auto,Auto,*,Auto,Auto" Margin="8">

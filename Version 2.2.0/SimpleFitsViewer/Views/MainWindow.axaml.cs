@@ -303,12 +303,29 @@ public partial class MainWindow : Window
     private void OnDiagnosticsClicked(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
         => new DiagnosticsWindow().Show();
 
+    // Help popups mirror the siblings: a bare Window wrapping a UserControl, centered on the owner,
+    // sized to the same dimensions StarFix/VariLab/TransitLab use for each.
     private void OnUserGuideClicked(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
-        => new InfoWindow("User Guide", AppText.UserGuide).Show();
+        => ShowInfoWindow("User Guide", new UserGuideView(), 920, 820, resizable: true);
 
     private void OnRevisionHistoryClicked(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
-        => new InfoWindow("Revision History", AppText.RevisionHistory).Show();
+        => ShowInfoWindow("Revision History", new RevisionHistoryView(), 800, 640, resizable: true);
 
     private void OnAboutClicked(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
-        => new InfoWindow("About", AppText.About).Show();
+        => ShowInfoWindow("About FluxLab", new AboutView(), 520, 640, resizable: false);
+
+    private void ShowInfoWindow(string title, Control content, int width, int height, bool resizable)
+    {
+        var win = new Window
+        {
+            Title = title,
+            Width = width,
+            Height = height,
+            CanResize = resizable,
+            Icon = Icon,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner,
+            Content = content,
+        };
+        win.Show(this);
+    }
 }

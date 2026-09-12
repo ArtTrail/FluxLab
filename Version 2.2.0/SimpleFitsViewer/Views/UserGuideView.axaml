@@ -1,0 +1,30 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="SimpleFitsViewer.Views.UserGuideView"
+             Background="{StaticResource BrushBg}">
+
+    <!-- Fixed header: title + search stay in view while the guide scrolls beneath them, so Find
+         Next stays reachable no matter how far down the reader is. Matches StarFix/VariLab. -->
+    <DockPanel LastChildFill="True">
+        <StackPanel DockPanel.Dock="Top" Margin="24,18,24,10" Spacing="10">
+            <TextBlock Classes="title" Text="FluxLab User Guide"/>
+            <Border Background="{StaticResource BrushBg2}" CornerRadius="4" Padding="10,8">
+                <DockPanel LastChildFill="True">
+                    <Button DockPanel.Dock="Right" x:Name="ClearButton" Content="Clear"
+                            Margin="6,0,0,0" Click="OnClearClick"/>
+                    <Button DockPanel.Dock="Right" x:Name="FindNextButton" Content="Find Next"
+                            Margin="6,0,0,0" Click="OnFindNextClick"/>
+                    <TextBlock DockPanel.Dock="Right" x:Name="SearchStatus" Classes="hint"
+                               VerticalAlignment="Center" Margin="10,0,4,0" MinWidth="70"/>
+                    <TextBox x:Name="SearchBox" Watermark="Search guide…" KeyDown="OnSearchKeyDown"/>
+                </DockPanel>
+            </Border>
+        </StackPanel>
+
+        <ScrollViewer x:Name="Scroller" HorizontalScrollBarVisibility="Disabled">
+            <StackPanel x:Name="ContentPanel" Margin="24,4,24,24" Spacing="0" MaxWidth="820"
+                        HorizontalAlignment="Left"/>
+        </ScrollViewer>
+    </DockPanel>
+
+</UserControl>
