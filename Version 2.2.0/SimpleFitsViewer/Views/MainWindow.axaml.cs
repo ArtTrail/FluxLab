@@ -40,7 +40,45 @@ public partial class MainWindow : Window
             if (DataContext is MainWindowViewModel vm)
                 vm.PropertyChanged += OnViewModelPropertyChanged;
         };
+
+        // Drag-and-drop: drop FITS files or a folder anywhere on the window to open them. Tunnelling
+        // handlers on the window (AllowDrop is set in XAML) so a drop over any child still counts.
+        AddHandler(DragDrop.DragOverEvent, OnDragOver);
+        AddHandler(DragDrop.DropEvent, OnDrop);
     }
+
+    // Avalonia 11.3 marks DragEventArgs.Data / DataFormats.Files obsolete in favour of the newer
+    // DataTransfer API, but the classic API is still present and fully functional on the pinned
+    // 11.3.12, and is what the drag-drop docs/samples still use. Suppressed locally rather than
+    // migrated so this doesn't chase an API that's still settling; revisit on an Avalonia bump.
+#pragma warning disable CS0618
+    private static void OnDragOver(object? sender, DragEventArgs e)
+    {
+        // Accept only file drops; show the copy cursor for them, reject everything else.
+        e.DragEffects = e.Data.Contains(DataFormats.Files)
+            ? DragDropEffects.Copy
+            : DragDropEffects.None;
+        e.Handled = true;
+    }
+
+    private void OnDrop(object? sender, DragEventArgs e)
+    {
+        e.Handled = true;
+        if (DataContext is not MainWindowViewModel vm) return;
+        if (!e.Data.Contains(DataFormats.Files)) return;
+
+        var items = e.Data.GetFiles();
+        if (items is null) return;
+
+        var paths = new List<string>();
+        foreach (var item in items)
+        {
+            var path = item.TryGetLocalPath();
+            if (!string.IsNullOrEmpty(path)) paths.Add(path);
+        }
+        if (paths.Count > 0) vm.LoadDropped(paths);
+    }
+#pragma warning restore CS0618
 
     private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {

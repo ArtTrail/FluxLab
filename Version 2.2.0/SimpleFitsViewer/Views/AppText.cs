@@ -11,6 +11,9 @@ public static class AppText
           • Open FITS File... — load a single FITS file (.fits/.fit/.fts)
           • Open Directory... — load every .fits/.fit/.fts file in a folder as
             a steppable sequence (see PLAYBACK below)
+          • Drag and drop — drop FITS files or a folder anywhere on the window.
+            One file opens on its own; several files (or a dropped folder) open
+            as a steppable sequence. Non-FITS items are ignored.
 
         2. VIEWING
           • Zoom In / Zoom Out / Fit / 1:1 — toolbar buttons

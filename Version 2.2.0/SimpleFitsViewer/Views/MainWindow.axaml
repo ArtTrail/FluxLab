@@ -9,7 +9,8 @@
         Title="FluxLab  v2.2.0"
         Icon="avares://SimpleFitsViewer/Assets/FluxLab.ico"
         Width="1200" Height="780"
-        Background="#1e1e2e">
+        Background="#1e1e2e"
+        DragDrop.AllowDrop="True">
 
     <Design.DataContext>
         <vm:MainWindowViewModel/>

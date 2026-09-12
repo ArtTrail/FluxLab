@@ -486,17 +486,22 @@ public partial class MainWindowViewModel : ViewModelBase
         UpdateFrameLabel();
     }
 
+    /// <summary>The file extensions the viewer treats as FITS, for directory scans and drag-drop.</summary>
+    private static readonly string[] FitsExtensions = [".fits", ".fit", ".fts"];
+
+    private static bool IsFitsFile(string path)
+        => FitsExtensions.Contains(System.IO.Path.GetExtension(path).ToLowerInvariant());
+
     /// <summary>Opens every .fits/.fit/.fts file in a directory (sorted by name) as a steppable
     /// sequence, matching the Python app's "Open Directory (Sequence)" -- resets the aperture and
     /// auto-stretches on the first frame, same as opening a single file fresh.</summary>
     public void LoadDirectory(string directory)
     {
-        string[] exts = [".fits", ".fit", ".fts"];
         List<string> files;
         try
         {
             files = System.IO.Directory.EnumerateFiles(directory)
-                .Where(f => exts.Contains(System.IO.Path.GetExtension(f).ToLowerInvariant()))
+                .Where(IsFitsFile)
                 .OrderBy(f => f, StringComparer.OrdinalIgnoreCase)
                 .ToList();
         }
@@ -512,6 +517,53 @@ public partial class MainWindowViewModel : ViewModelBase
             return;
         }
 
+        StartSequence(files);
+    }
+
+    /// <summary>
+    /// Opens whatever was dropped onto the window: any mix of FITS files and folders. Folders are
+    /// expanded to their FITS contents; a single resulting file opens like Open File, several open
+    /// as a steppable sequence (sorted by name, de-duplicated). Non-FITS items are ignored, with a
+    /// clear message if nothing usable was dropped.
+    /// </summary>
+    public void LoadDropped(IReadOnlyList<string> paths)
+    {
+        var files = new List<string>();
+        try
+        {
+            foreach (var p in paths)
+            {
+                if (System.IO.Directory.Exists(p))
+                    files.AddRange(System.IO.Directory.EnumerateFiles(p).Where(IsFitsFile));
+                else if (System.IO.File.Exists(p) && IsFitsFile(p))
+                    files.Add(p);
+            }
+        }
+        catch (Exception ex)
+        {
+            DiagnosticsLog.LogException("Opening dropped items", ex);
+            InstructionText = $"Error opening dropped items: {ex.Message}";
+            return;
+        }
+
+        files = files.Distinct(StringComparer.OrdinalIgnoreCase)
+                     .OrderBy(f => f, StringComparer.OrdinalIgnoreCase)
+                     .ToList();
+
+        if (files.Count == 0)
+        {
+            InstructionText = "Nothing to open -- drop FITS files (.fits/.fit/.fts) or a folder containing them.";
+            return;
+        }
+        if (files.Count == 1) { LoadFile(files[0]); return; }
+        StartSequence(files);
+    }
+
+    /// <summary>Shared tail for opening a non-empty, already-filtered/sorted list of FITS files as a
+    /// sequence: resets aperture + stretch on the first frame. Used by LoadDirectory and LoadDropped
+    /// so both behave identically once the file list is known.</summary>
+    private void StartSequence(List<string> files)
+    {
         StopPlayback();
         _sequenceFiles = files;
         _currentFrameIndex = 0;
