@@ -6,7 +6,7 @@
         mc:Ignorable="d" d:DesignWidth="1080" d:DesignHeight="720"
         x:Class="SimpleFitsViewer.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
-        Title="Simple FITS Viewer  v2.2.0"
+        Title="FluxLab  v2.2.0"
         Width="1200" Height="780"
         Background="#1e1e2e">
 

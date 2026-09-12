@@ -5,7 +5,7 @@ namespace SimpleFitsViewer.Views;
 public static class AppText
 {
     public const string UserGuide = """
-        SIMPLE FITS VIEWER — USER GUIDE
+        FLUXLAB — USER GUIDE
 
         1. OPENING FILES
           • Open FITS File... — load a single FITS file (.fits/.fit/.fts)
@@ -216,9 +216,13 @@ public static class AppText
         """;
 
     public const string RevisionHistory = """
-        SIMPLE FITS VIEWER — REVISION HISTORY (C# / Avalonia port)
+        FLUXLAB — REVISION HISTORY (C# / Avalonia port)
 
         v2.2.0 — 2026-09-11
+
+          • Renamed: the app is now FluxLab (was Simple FITS Viewer). Your
+            saved camera profiles are unaffected -- they still live in the same
+            place and carry over automatically.
 
           • New: WCS support. A TAN plate solution in the header (with SIP
             distortion terms if present) is now read and used. The cursor
@@ -413,14 +417,16 @@ public static class AppText
         """;
 
     public const string About = """
-        Simple FITS Viewer
+        FluxLab
         Version 2.2.0 (C# / Avalonia port)
 
         A desktop viewer and aperture-photometry tool for FITS astronomy images,
         built around determining the right exposure time for exoplanet transit
         and variable-star photometry.
 
-        github.com/ArtTrail/Simple-FITS-Viewer
+        (formerly Simple FITS Viewer)
+
+        github.com/ArtTrail/FluxLab
 
         art.trail@icloud.com
 

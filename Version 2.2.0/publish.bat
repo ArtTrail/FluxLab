@@ -1,6 +1,6 @@
 @echo off
 echo.
-echo  Simple FITS Viewer -- building release...
+echo  FluxLab -- building release...
 echo.
 where dotnet >nul 2>&1
 if %errorlevel% neq 0 (
