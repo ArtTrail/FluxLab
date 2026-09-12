@@ -458,6 +458,116 @@ public partial class MainWindowViewModel : ViewModelBase
             IsResolvingTarget = false;
         }
     }
+
+    // ---- Plate solve (drives an installed StarFix headlessly) ----
+
+    [ObservableProperty] private bool _isSolving;
+    [ObservableProperty] private string _solveStatusText = "";
+    [ObservableProperty] private IBrush _solveStatusColor = Brushes.Gray;
+
+    private void SetSolveStatus(string message, IBrush color)
+    {
+        SolveStatusText = message;
+        SolveStatusColor = color;
+    }
+
+    /// <summary>
+    /// Plate-solves the displayed frame by shelling out to an installed StarFix's solver, then
+    /// re-reads the freshly-written WCS so the cursor RA/Dec, the WCS row and the aperture's sky
+    /// position light up. StarFix is a directed solver, so it needs a position hint: the frame's
+    /// own RA/DEC header keywords when present, otherwise the name in the Find Target box (resolved
+    /// to coordinates). Solves in place -- the WCS is written straight into the file, like ASTAP.
+    /// </summary>
+    [RelayCommand]
+    private async Task SolveAsync()
+    {
+        if (_pixels.Length == 0 || _currentFilePath is null)
+        {
+            SetSolveStatus("Open a FITS file first.", Brushes.Orange);
+            return;
+        }
+
+        var cfg = SolverConfig.Load();
+        var loc = SolverLocatorService.Locate(cfg);
+        if (!loc.SolverFound)
+        {
+            SetSolveStatus("StarFix's solver wasn't found. Install StarFix, or set its path in "
+                         + "Tools > Plate Solver.", Brushes.Orange);
+            return;
+        }
+        if (!loc.CatalogFound)
+        {
+            SetSolveStatus("StarFix's Gaia catalog wasn't found. Download it in StarFix, or set its "
+                         + "path in Tools > Plate Solver.", Brushes.Orange);
+            return;
+        }
+
+        // Position hint: prefer the header's own RA/DEC (the solver reads them itself), else fall
+        // back to resolving the Find Target name. Bail with a clear message if neither is available.
+        double? raHint = null, decHint = null;
+        bool headerHasPosition = _header.GetDouble("RA") is not null && _header.GetDouble("DEC") is not null;
+        if (!headerHasPosition)
+        {
+            string name = TargetNameText.Trim();
+            if (name.Length == 0)
+            {
+                SetSolveStatus("This frame has no RA/DEC in its header, so the solver has no "
+                             + "starting point. Type the target name in Find Target first.", Brushes.Orange);
+                return;
+            }
+            SetSolveStatus($"No header position -- resolving '{name}' for a solve hint…", Brushes.Gray);
+            var hit = await TargetResolverService.ResolveAsync(name);
+            if (hit is null)
+            {
+                SetSolveStatus($"No header position and '{name}' didn't resolve, so there's no solve "
+                             + "hint. See Tools > Diagnostics.", Brushes.Orange);
+                return;
+            }
+            raHint = hit.Ra; decHint = hit.Dec;
+        }
+
+        IsSolving = true;
+        SetSolveStatus("Plate solving…", Brushes.Gray);
+        try
+        {
+            string path = _currentFilePath;
+            var result = await PlateSolveService.SolveAsync(
+                path, raHint, decHint, loc.SolverExe!, loc.CatalogDir!, radiusDeg: 0.5, CancellationToken.None);
+
+            if (!result.Ok)
+            {
+                SetSolveStatus(result.Message, Brushes.Orange);
+                return;
+            }
+
+            // Solved in place: pixels are untouched, only header WCS cards were added, so re-read
+            // just the header and refresh the WCS-derived readouts -- no need to reload the image.
+            if (path == _currentFilePath)
+            {
+                _header = FitsHeader.Read(path);
+                _wcs = WcsSolution.TryParse(_header);
+                WcsStatusText = _wcs is null
+                    ? "not plate solved"
+                    : $"TAN{(_wcs.HasSip ? " + SIP" : "")}, {_wcs.PixelScaleArcsec:F3}\"/px";
+                UpdateApertureRaDec();
+                CursorText = "";
+            }
+
+            SetSolveStatus(_wcs is not null ? result.Message
+                : result.Message + " (but the written WCS didn't parse back -- see Diagnostics).",
+                _wcs is not null ? Brushes.LightGreen : Brushes.Orange);
+        }
+        catch (Exception ex)
+        {
+            DiagnosticsLog.LogException($"Plate solving {_currentFilePath}", ex);
+            SetSolveStatus($"Solve failed: {ex.Message}", Brushes.Orange);
+        }
+        finally
+        {
+            IsSolving = false;
+        }
+    }
+
     [ObservableProperty] private string _totalElectronsText = "—";
 
     // Exposure Meter

@@ -20,6 +20,7 @@
         <Menu Grid.Row="0">
             <MenuItem Header="_Tools">
                 <MenuItem Header="FITS Header..." Click="OnFitsHeaderClicked"/>
+                <MenuItem Header="Plate Solver..." Click="OnPlateSolverSettingsClicked"/>
                 <MenuItem Header="Diagnostics" Click="OnDiagnosticsClicked"/>
             </MenuItem>
             <MenuItem Header="_Help">
@@ -157,6 +158,14 @@
                                TextWrapping="Wrap" Margin="0,0,0,8"/>
                     <Button Content="Clear Aperture" Command="{Binding ClearApertureCommand}"
                             Background="#6a1a1a" Foreground="White" HorizontalAlignment="Stretch" Margin="0,0,0,10"/>
+
+                    <TextBlock Text="Plate Solve" FontWeight="Bold" Foreground="#66aaff" Margin="0,4,0,2"/>
+                    <TextBlock Text="Solves this frame via an installed StarFix and writes the WCS into the file. Uses the header's RA/DEC as the hint, or the Find Target name below when the header has none."
+                               Foreground="#555577" FontStyle="Italic" TextWrapping="Wrap" Margin="0,0,0,3"/>
+                    <Button Content="Plate Solve (StarFix)" Command="{Binding SolveCommand}"
+                            IsEnabled="{Binding !IsSolving}" HorizontalAlignment="Stretch"/>
+                    <TextBlock Text="{Binding SolveStatusText}" Foreground="{Binding SolveStatusColor}"
+                               TextWrapping="Wrap" Margin="0,3,0,10"/>
 
                     <TextBlock Text="Find Target" FontWeight="Bold" Foreground="#66aaff" Margin="0,4,0,2"/>
                     <TextBlock Text="Looks the name up in VSX, then the NASA Exoplanet Archive, then SIMBAD, and places the aperture there. Needs a plate-solved frame."

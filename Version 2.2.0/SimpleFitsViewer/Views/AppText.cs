@@ -184,6 +184,20 @@ public static class AppText
           • "Center (RA, Dec)" in Results gives the sky position of the current
             aperture centre.
 
+          PLATE SOLVE (via StarFix)
+          • If a frame is not plate solved, the "Plate Solve (StarFix)" button
+            solves it in place using an installed copy of StarFix, then fills in
+            the WCS so the cursor RA/Dec, the WCS row, and Find Target all work.
+          • StarFix is a DIRECTED solver, not a blind one -- it needs a rough
+            starting position. FluxLab uses the frame's own RA/DEC header
+            keywords when present (the usual case for NINA captures); when the
+            header has none, type the target name in Find Target first and that
+            is used as the hint.
+          • The solve writes the WCS straight into the file (like ASTAP). It
+            needs StarFix and its Gaia catalog installed; FluxLab auto-detects a
+            standard StarFix install, and Tools > Plate Solver lets you point at
+            a custom location and shows whether the solver and catalog are found.
+
           FIND TARGET
           • Type a name and press Find (or Enter) to place the aperture on it.
             The box is pre-filled from the frame's OBJECT keyword when there is

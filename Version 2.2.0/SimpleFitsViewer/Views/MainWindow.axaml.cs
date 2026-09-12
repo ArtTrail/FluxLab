@@ -341,6 +341,9 @@ public partial class MainWindow : Window
     private void OnDiagnosticsClicked(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
         => new DiagnosticsWindow().Show();
 
+    private void OnPlateSolverSettingsClicked(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => new PlateSolverSettingsWindow { WindowStartupLocation = WindowStartupLocation.CenterOwner }.Show(this);
+
     // Help popups mirror the siblings: a bare Window wrapping a UserControl, centered on the owner,
     // sized to the same dimensions StarFix/VariLab/TransitLab use for each.
     private void OnUserGuideClicked(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
