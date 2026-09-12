@@ -6,3 +6,22 @@ fits_viewer_settings.json
 run_log.txt
 build_log.txt
 .DS_Store
+
+# .NET build output (the C#/Avalonia app, v2.0.0+). Without these the Version
+# folders are 150-475MB apiece, nearly all of it regenerable build artifacts.
+bin/
+obj/
+.vs/
+*.user
+
+# User data, never source. Camera profiles moved to %AppData%\SimpleFitsViewer\
+# in v2.1.0, but pre-2.1.0 builds wrote them next to the exe (i.e. under bin/).
+camera_profile.json
+camera_profile_library.json
+*.json.bak
+
+# Loose dev scratch screenshots dropped into the version folders. 58 of them, and
+# because each new version folder is robocopied from the last they are triplicated:
+# 45.7MB against 1.4MB of actual source. Git history is permanent, so they stay out.
+# (The curated README asset in screenshots/ is deliberately NOT matched by this.)
+Screenshot *.png

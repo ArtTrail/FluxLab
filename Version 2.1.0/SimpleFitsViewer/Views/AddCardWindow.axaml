@@ -1,0 +1,25 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="SimpleFitsViewer.Views.AddCardWindow"
+        Title="Add Keyword" Width="380" Height="230"
+        CanResize="False" WindowStartupLocation="CenterOwner"
+        Background="#1e1e30">
+    <Grid Margin="14" RowDefinitions="Auto,Auto,Auto,Auto,*,Auto" ColumnDefinitions="80,*">
+        <TextBlock Grid.Row="0" Grid.Column="0" Text="Keyword" Foreground="#cccccc" VerticalAlignment="Center"/>
+        <TextBox Grid.Row="0" Grid.Column="1" Name="KeywordBox" MaxLength="8" Margin="0,0,0,8"/>
+
+        <TextBlock Grid.Row="1" Grid.Column="0" Text="Value" Foreground="#cccccc" VerticalAlignment="Center"/>
+        <TextBox Grid.Row="1" Grid.Column="1" Name="ValueBox" Margin="0,0,0,8"/>
+
+        <TextBlock Grid.Row="2" Grid.Column="0" Text="Comment" Foreground="#cccccc" VerticalAlignment="Center"/>
+        <TextBox Grid.Row="2" Grid.Column="1" Name="CommentBox" Margin="0,0,0,8"/>
+
+        <TextBlock Grid.Row="3" Grid.ColumnSpan="2" Text="Keyword is limited to 8 characters, per the FITS standard."
+                   Foreground="#6666aa" FontStyle="Italic" FontSize="11" TextWrapping="Wrap"/>
+
+        <StackPanel Grid.Row="5" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+            <Button Content="Cancel" Click="OnCancelClicked" Padding="12,4"/>
+            <Button Content="Add" Click="OnAddClicked" Background="#1a5080" Foreground="White" Padding="12,4"/>
+        </StackPanel>
+    </Grid>
+</Window>

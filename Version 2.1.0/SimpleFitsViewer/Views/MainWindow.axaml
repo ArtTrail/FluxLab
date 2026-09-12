@@ -1,0 +1,218 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:SimpleFitsViewer.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="1080" d:DesignHeight="720"
+        x:Class="SimpleFitsViewer.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="Simple FITS Viewer  v2.1.0"
+        Width="1200" Height="780"
+        Background="#1e1e2e">
+
+    <Design.DataContext>
+        <vm:MainWindowViewModel/>
+    </Design.DataContext>
+
+    <Grid RowDefinitions="Auto,*">
+        <Menu Grid.Row="0" Background="#141420">
+            <MenuItem Header="Tools">
+                <MenuItem Header="FITS Header..." Click="OnFitsHeaderClicked"/>
+                <MenuItem Header="Diagnostics" Click="OnDiagnosticsClicked"/>
+            </MenuItem>
+            <MenuItem Header="Help">
+                <MenuItem Header="User Guide" Click="OnUserGuideClicked"/>
+                <MenuItem Header="Revision History" Click="OnRevisionHistoryClicked"/>
+                <MenuItem Header="About" Click="OnAboutClicked"/>
+            </MenuItem>
+        </Menu>
+
+    <Grid Grid.Row="1" ColumnDefinitions="*,380">
+
+        <!-- Image area -->
+        <Grid Grid.Column="0" RowDefinitions="Auto,Auto,*,Auto,Auto" Margin="8">
+            <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="6" Margin="0,0,0,6">
+                <Button Content="Open FITS File..." Click="OnOpenClicked" Padding="12,6"/>
+                <Button Content="Open Directory..." Click="OnOpenDirectoryClicked" Padding="12,6"/>
+                <Button Content="Zoom In"  Command="{Binding ZoomInCommand}" Padding="10,6"/>
+                <Button Content="Zoom Out" Command="{Binding ZoomOutCommand}" Padding="10,6"/>
+                <Button Content="Fit" Click="OnFitClicked" Padding="10,6"/>
+                <Button Content="1:1" Command="{Binding ZoomOneToOneCommand}" Padding="10,6"/>
+                <TextBlock Text="{Binding ZoomScale, StringFormat='Zoom: {0:P0}'}"
+                           Foreground="#8888bb" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                <TextBlock Text="Scroll wheel = zoom at cursor  |  Middle-drag = pan"
+                           Foreground="#555577" FontStyle="Italic" VerticalAlignment="Center" Margin="12,0,0,0"/>
+            </StackPanel>
+            <TextBlock Grid.Row="1" Text="{Binding FileNameText}" Foreground="#8888bb" Margin="0,0,0,6"/>
+
+            <ScrollViewer Name="ImageScroller" Grid.Row="2"
+                          HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
+                          PointerMoved="OnScrollerPointerMoved"
+                          PointerReleased="OnScrollerPointerReleased">
+                <LayoutTransformControl PointerWheelChanged="OnScrollerPointerWheel">
+                    <LayoutTransformControl.LayoutTransform>
+                        <ScaleTransform ScaleX="{Binding ZoomScale}" ScaleY="{Binding ZoomScale}"/>
+                    </LayoutTransformControl.LayoutTransform>
+
+                    <Grid Name="ImageHost" HorizontalAlignment="Left" VerticalAlignment="Top">
+                        <Image Name="FitsImage" Source="{Binding DisplayImage}" Stretch="None"
+                               HorizontalAlignment="Left" VerticalAlignment="Top"
+                               RenderOptions.BitmapInterpolationMode="None"
+                               PointerPressed="OnImagePointerPressed"
+                               PointerMoved="OnImagePointerMoved"
+                               PointerReleased="OnImagePointerReleased" />
+
+                        <Canvas Name="ApertureOverlay" Width="{Binding DisplayImage.PixelSize.Width}"
+                                Height="{Binding DisplayImage.PixelSize.Height}" IsHitTestVisible="False">
+                            <Ellipse IsVisible="{Binding ApertureVisible}" Stroke="#33ff66" StrokeThickness="2"
+                                     Canvas.Left="{Binding ApertureLeft}" Canvas.Top="{Binding ApertureTop}"
+                                     Width="{Binding ApertureSize}" Height="{Binding ApertureSize}"/>
+                            <Ellipse IsVisible="{Binding ApertureVisible}" Stroke="#33ccff" StrokeThickness="1.5" StrokeDashArray="4,3"
+                                     Canvas.Left="{Binding AnnulusInnerLeft}" Canvas.Top="{Binding AnnulusInnerTop}"
+                                     Width="{Binding AnnulusInnerSize}" Height="{Binding AnnulusInnerSize}"/>
+                            <Ellipse IsVisible="{Binding ApertureVisible}" Stroke="#ff44cc" StrokeThickness="1.5" StrokeDashArray="4,3"
+                                     Canvas.Left="{Binding AnnulusOuterLeft}" Canvas.Top="{Binding AnnulusOuterTop}"
+                                     Width="{Binding AnnulusOuterSize}" Height="{Binding AnnulusOuterSize}"/>
+                        </Canvas>
+                    </Grid>
+                </LayoutTransformControl>
+            </ScrollViewer>
+
+            <!-- Histogram -->
+            <Grid Grid.Row="3" RowDefinitions="Auto,Auto,Auto" Margin="0,8,0,0">
+                <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10">
+                    <TextBlock Text="Histogram" Foreground="#66aaff" FontWeight="Bold" VerticalAlignment="Center"/>
+                    <Button Content="Auto Stretch" Command="{Binding AutoStretchCommand}" Padding="8,3"/>
+                    <TextBlock Text="Drag the red/yellow lines, or use the sliders below"
+                               Foreground="#555577" FontStyle="Italic" VerticalAlignment="Center"/>
+                </StackPanel>
+                <Grid Grid.Row="1" Height="70" Margin="0,4,0,2">
+                    <Image Source="{Binding HistogramImage}" Stretch="Fill" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+                    <Canvas Name="HistogramOverlay" Background="Transparent"
+                            PointerPressed="OnHistogramPointerPressed"
+                            PointerMoved="OnHistogramPointerMoved"
+                            PointerReleased="OnHistogramPointerReleased"
+                            SizeChanged="OnHistogramOverlaySizeChanged">
+                        <Line Name="BlackLine" Stroke="#ff5555" StrokeThickness="2"/>
+                        <Line Name="WhiteLine" Stroke="#ffdd55" StrokeThickness="2"/>
+                    </Canvas>
+                </Grid>
+                <Grid Grid.Row="2" ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto,*,Auto" Margin="0,2,0,0">
+                    <TextBlock Grid.Column="0" Text="Black" Foreground="#cccccc" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                    <Button Grid.Column="1" Content="-" Command="{Binding BlackDownCommand}" Padding="6,2" Margin="0,0,4,0"/>
+                    <Slider Grid.Column="2" Minimum="0" Maximum="1" Value="{Binding BlackLevel}"/>
+                    <Button Grid.Column="3" Content="+" Command="{Binding BlackUpCommand}" Padding="6,2" Margin="4,0,16,0"/>
+                    <TextBlock Grid.Column="4" Text="White" Foreground="#cccccc" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                    <Button Grid.Column="5" Content="-" Command="{Binding WhiteDownCommand}" Padding="6,2" Margin="0,0,4,0"/>
+                    <Slider Grid.Column="6" Minimum="0" Maximum="1" Value="{Binding WhiteLevel}"/>
+                    <Button Grid.Column="7" Content="+" Command="{Binding WhiteUpCommand}" Padding="6,2" Margin="4,0,0,0"/>
+                </Grid>
+            </Grid>
+
+            <!-- Sequence playback (Open Directory) -->
+            <Grid Grid.Row="4" ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,*" Margin="0,8,0,0">
+                <Button Grid.Column="0" Content="⏮" Command="{Binding FrameFirstCommand}"
+                        FontSize="16" Padding="10,4" Margin="0,0,4,0"/>
+                <Button Grid.Column="1" Content="|◀" Command="{Binding FramePrevCommand}"
+                        FontSize="16" Padding="10,4" Margin="0,0,4,0"/>
+                <Button Grid.Column="2" Content="{Binding PlayButtonGlyph}" Command="{Binding TogglePlayCommand}"
+                        FontSize="16" Padding="12,4" Margin="0,0,4,0"/>
+                <Button Grid.Column="3" Content="▶|" Command="{Binding FrameNextCommand}"
+                        FontSize="16" Padding="10,4" Margin="0,0,4,0"/>
+                <Button Grid.Column="4" Content="⏭" Command="{Binding FrameLastCommand}"
+                        FontSize="16" Padding="10,4" Margin="0,0,10,0"/>
+                <TextBlock Grid.Column="5" Text="{Binding FrameLabelText}" Foreground="#cccccc"
+                           VerticalAlignment="Center" Margin="0,0,10,0" MinWidth="90"/>
+                <Slider Grid.Column="6" Minimum="0" Maximum="{Binding FrameSliderMaximum}"
+                        Value="{Binding FrameSliderValue}" IsEnabled="{Binding HasSequence}"
+                        VerticalAlignment="Center"/>
+            </Grid>
+        </Grid>
+
+        <!-- Aperture Photometry panel -->
+        <Border Grid.Column="1" Background="#252535" Padding="10">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel Spacing="4">
+                    <TextBlock Text="Aperture Photometry" FontWeight="Bold" FontSize="13" Foreground="White" Margin="0,0,0,4"/>
+                    <TextBlock Text="{Binding InstructionText}" Foreground="#8888bb" FontStyle="Italic"
+                               TextWrapping="Wrap" Margin="0,0,0,8"/>
+                    <Button Content="Clear Aperture" Command="{Binding ClearApertureCommand}"
+                            Background="#6a1a1a" Foreground="White" HorizontalAlignment="Stretch" Margin="0,0,0,10"/>
+
+                    <TextBlock Text="Geometry (pixels)" FontWeight="Bold" Foreground="#66aaff" Margin="0,4,0,2"/>
+                    <TextBlock Text="Click a star = re-center + auto-size.  Click-drag an existing set = move it without resizing."
+                               Foreground="#555577" FontStyle="Italic" TextWrapping="Wrap" Margin="0,0,0,3"/>
+                    <Grid ColumnDefinitions="140,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="3">
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Aperture radius" Foreground="#cccccc" VerticalAlignment="Center"/>
+                        <NumericUpDown Grid.Row="0" Grid.Column="1" Value="{Binding ApertureRadiusValue}"
+                                       Minimum="0.5" Maximum="500" Increment="0.5" FormatString="F1"
+                                       Background="#1e1e30" BorderBrush="#444466" Foreground="White"/>
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Annulus inner" Foreground="#cccccc" VerticalAlignment="Center"/>
+                        <NumericUpDown Grid.Row="1" Grid.Column="1" Value="{Binding AnnulusInnerValue}"
+                                       Minimum="0.5" Maximum="500" Increment="1" FormatString="F1"
+                                       Background="#1e1e30" BorderBrush="#444466" Foreground="White"/>
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Annulus outer" Foreground="#cccccc" VerticalAlignment="Center"/>
+                        <NumericUpDown Grid.Row="2" Grid.Column="1" Value="{Binding AnnulusOuterValue}"
+                                       Minimum="0.5" Maximum="500" Increment="1" FormatString="F1"
+                                       Background="#1e1e30" BorderBrush="#444466" Foreground="White"/>
+                    </Grid>
+
+                    <TextBlock Text="Camera Profiles" FontWeight="Bold" Foreground="#66aaff" Margin="0,10,0,2"/>
+                    <Grid ColumnDefinitions="*,Auto,Auto" RowSpacing="3">
+                        <ComboBox Grid.Column="0" ItemsSource="{Binding ProfileNames}"
+                                  SelectedItem="{Binding SelectedProfileName}" HorizontalAlignment="Stretch"/>
+                        <Button Grid.Column="1" Content="Load" Command="{Binding LoadSelectedProfileCommand}" Margin="4,0,0,0"/>
+                        <Button Grid.Column="2" Content="Delete" Command="{Binding DeleteSelectedProfileCommand}"
+                                Background="#6a1a1a" Margin="4,0,0,0"/>
+                    </Grid>
+                    <Grid ColumnDefinitions="*,Auto" Margin="0,4,0,0">
+                        <TextBox Grid.Column="0" Text="{Binding SaveAsNameText}" Watermark="Profile name, e.g. ASI183MM Pro - gain 111"/>
+                        <Button Grid.Column="1" Content="Save As" Command="{Binding SaveAsProfileCommand}" Margin="4,0,0,0"/>
+                    </Grid>
+
+                    <TextBlock Text="Gain &amp; Scaling" FontWeight="Bold" Foreground="#66aaff" Margin="0,10,0,2"/>
+                    <Grid ColumnDefinitions="140,*" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="3">
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Gain (e-/ADU)" Foreground="#cccccc" VerticalAlignment="Center"/>
+                        <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding GainText}"/>
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="ADU scale" Foreground="#cccccc" VerticalAlignment="Center"/>
+                        <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding AduScaleText}"/>
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Full well (e-)" Foreground="#cccccc" VerticalAlignment="Center"/>
+                        <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding FullWellText}"/>
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Target electrons" Foreground="#cccccc" VerticalAlignment="Center"/>
+                        <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding TargetElectronsText}"/>
+                    </Grid>
+
+                    <TextBlock Text="Results" FontWeight="Bold" Foreground="#66aaff" Margin="0,10,0,2"/>
+                    <Grid ColumnDefinitions="140,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="2">
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Center (X, Y)" Foreground="#cccccc"/>
+                        <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding CenterText}" Foreground="White" FontWeight="Bold"/>
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Aperture pixels" Foreground="#cccccc"/>
+                        <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding ApertureCountText}" Foreground="White" FontWeight="Bold"/>
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Sky median/px" Foreground="#cccccc"/>
+                        <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding SkyMedianText}" Foreground="White" FontWeight="Bold"/>
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Sky sigma" Foreground="#cccccc"/>
+                        <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding SkySigmaText}" Foreground="White" FontWeight="Bold"/>
+                        <TextBlock Grid.Row="4" Grid.Column="0" Text="Peak (ADU)" Foreground="#cccccc"/>
+                        <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding PeakText}" Foreground="White" FontWeight="Bold"/>
+                        <TextBlock Grid.Row="5" Grid.Column="0" Text="Gain source" Foreground="#cccccc"/>
+                        <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding GainSourceText}" Foreground="White" FontWeight="Bold" TextWrapping="Wrap"/>
+                        <TextBlock Grid.Row="9" Grid.Column="0" Text="ADU scale source" Foreground="#cccccc"/>
+                        <TextBlock Grid.Row="9" Grid.Column="1" Text="{Binding AduScaleSourceText}" Foreground="White" FontWeight="Bold" TextWrapping="Wrap"/>
+                        <TextBlock Grid.Row="6" Grid.Column="0" Text="Full well source" Foreground="#cccccc"/>
+                        <TextBlock Grid.Row="6" Grid.Column="1" Text="{Binding FullWellSourceText}" Foreground="White" FontWeight="Bold" TextWrapping="Wrap"/>
+                        <TextBlock Grid.Row="7" Grid.Column="0" Text="Colour filter" Foreground="#cccccc"/>
+                        <TextBlock Grid.Row="7" Grid.Column="1" Text="{Binding ColorFilterText}" Foreground="White" FontWeight="Bold" TextWrapping="Wrap"/>
+                        <TextBlock Grid.Row="8" Grid.Column="0" Text="Total electrons" Foreground="#cccccc"/>
+                        <TextBlock Grid.Row="8" Grid.Column="1" Text="{Binding TotalElectronsText}" Foreground="White" FontWeight="Bold"/>
+                    </Grid>
+
+                    <TextBlock Text="Exposure Meter" FontWeight="Bold" Foreground="#66aaff" Margin="0,10,0,2"/>
+                    <TextBlock Text="{Binding MeterStateText}" Foreground="{Binding MeterColor}"
+                               FontWeight="Bold" FontSize="13" TextWrapping="Wrap"/>
+                    <TextBlock Text="{Binding MeterRecommendationText}" Foreground="#dddddd" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+    </Grid>
+    </Grid>
+</Window>
