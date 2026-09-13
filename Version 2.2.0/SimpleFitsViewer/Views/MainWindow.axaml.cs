@@ -355,6 +355,24 @@ public partial class MainWindow : Window
     private void OnAboutClicked(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
         => ShowInfoWindow("About FluxLab", new AboutView(), 520, 640, resizable: false);
 
+    private void OnSubmitFeedbackClicked(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        Window? win = null;
+        var vm = new ViewModels.BugReportViewModel();
+        vm.CloseCallback = () => win?.Close();
+        win = new Window
+        {
+            Title = "Submit Feedback",
+            Width = 560,
+            SizeToContent = SizeToContent.Height,
+            CanResize = false,
+            Icon = Icon,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner,
+            Content = new BugReportView { DataContext = vm },
+        };
+        win.Show(this);
+    }
+
     private void ShowInfoWindow(string title, Control content, int width, int height, bool resizable)
     {
         var win = new Window
