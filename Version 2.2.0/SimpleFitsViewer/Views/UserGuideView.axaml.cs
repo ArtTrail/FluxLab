@@ -87,6 +87,10 @@ public partial class UserGuideView : UserControl
         var highlightBg = this.TryFindResource("BrushWarn", out var warn) ? warn as IBrush : Brushes.Yellow;
         var highlightFg = this.TryFindResource("BrushBg", out var bg) ? bg as IBrush : Brushes.Black;
 
+        // Clear Text before populating Inlines: in Avalonia 11.3 a TextBlock with BOTH a non-empty
+        // Text and non-empty Inlines renders them one after the other -- the sentence appears twice.
+        // Setting Text to null leaves Inlines as the sole content; ClearHighlight restores Text.
+        block.Text = null;
         block.Inlines ??= new InlineCollection();
         block.Inlines.Clear();
         if (before.Length > 0) block.Inlines.Add(new Run(before));
