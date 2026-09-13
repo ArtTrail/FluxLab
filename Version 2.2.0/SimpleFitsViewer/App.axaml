@@ -58,24 +58,34 @@
             <Setter Property="Foreground" Value="{StaticResource BrushHint}"/>
         </Style>
         <Style Selector="Button.link">
-            <Setter Property="FontFamily" Value="Arial"/>
             <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="{StaticResource BrushAccent}"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Padding" Value="0"/>
             <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Foreground" Value="{StaticResource BrushAccent}"/>
+            <Setter Property="FontFamily" Value="Arial"/>
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Cursor" Value="Hand"/>
         </Style>
         <Style Selector="Button.link:pointerover /template/ ContentPresenter">
             <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="TextBlock.Foreground" Value="{StaticResource BrushBtnHov}"/>
+        </Style>
+        <Style Selector="Button.link:pointerover">
+            <Setter Property="Foreground" Value="{StaticResource BrushBtnHov}"/>
         </Style>
         <Style Selector="Button.fab">
-            <Setter Property="Width" Value="44"/>
-            <Setter Property="Height" Value="44"/>
-            <Setter Property="CornerRadius" Value="22"/>
             <Setter Property="Background" Value="{StaticResource BrushBtn}"/>
             <Setter Property="Foreground" Value="{StaticResource BrushFg}"/>
-            <Setter Property="FontSize" Value="20"/>
+            <Setter Property="FontSize" Value="22"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="CornerRadius" Value="24"/>
+            <Setter Property="Width" Value="48"/>
+            <Setter Property="Height" Value="48"/>
+            <Setter Property="Padding" Value="0"/>
+        </Style>
+        <Style Selector="Button.fab:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource BrushBtnHov}"/>
         </Style>
     </Application.Styles>
 </Application>

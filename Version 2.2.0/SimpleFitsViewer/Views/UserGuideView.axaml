@@ -1,30 +1,144 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             x:Class="SimpleFitsViewer.Views.UserGuideView"
-             Background="{StaticResource BrushBg}">
+             x:Class="SimpleFitsViewer.Views.UserGuideView">
 
-    <!-- Fixed header: title + search stay in view while the guide scrolls beneath them, so Find
-         Next stays reachable no matter how far down the reader is. Matches StarFix/VariLab. -->
-    <DockPanel LastChildFill="True">
-        <StackPanel DockPanel.Dock="Top" Margin="24,18,24,10" Spacing="10">
-            <TextBlock Classes="title" Text="FluxLab User Guide"/>
-            <Border Background="{StaticResource BrushBg2}" CornerRadius="4" Padding="10,8">
-                <DockPanel LastChildFill="True">
-                    <Button DockPanel.Dock="Right" x:Name="ClearButton" Content="Clear"
-                            Margin="6,0,0,0" Click="OnClearClick"/>
-                    <Button DockPanel.Dock="Right" x:Name="FindNextButton" Content="Find Next"
-                            Margin="6,0,0,0" Click="OnFindNextClick"/>
-                    <TextBlock DockPanel.Dock="Right" x:Name="SearchStatus" Classes="hint"
-                               VerticalAlignment="Center" Margin="10,0,4,0" MinWidth="70"/>
-                    <TextBox x:Name="SearchBox" Watermark="Search guide…" KeyDown="OnSearchKeyDown"/>
-                </DockPanel>
-            </Border>
-        </StackPanel>
+    <!-- Base text styling scoped to THIS view only (not App.axaml), so the guide matches the
+         ecosystem's Arial/20 body without restyling FluxLab's main photometry window. -->
+    <UserControl.Styles>
+        <Style Selector="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource BrushFg}"/>
+            <Setter Property="FontFamily" Value="Arial"/>
+            <Setter Property="FontSize" Value="20"/>
+        </Style>
+    </UserControl.Styles>
 
-        <ScrollViewer x:Name="Scroller" HorizontalScrollBarVisibility="Disabled">
-            <StackPanel x:Name="ContentPanel" Margin="24,4,24,24" Spacing="0" MaxWidth="820"
-                        HorizontalAlignment="Left"/>
-        </ScrollViewer>
-    </DockPanel>
+    <Grid Background="{StaticResource BrushBg}">
+        <DockPanel>
+
+            <!-- Fixed header: title + search stay in view while the guide scrolls beneath them, so
+                 Find Next stays reachable after jumping to a match anywhere in the document. -->
+            <StackPanel DockPanel.Dock="Top" MaxWidth="820" Margin="24,20,24,0">
+                <TextBlock Classes="title" Text="FluxLab User Guide"/>
+                <Border Background="{StaticResource BrushBg2}" CornerRadius="4" Padding="10,8" Margin="0,8,0,0">
+                    <DockPanel>
+                        <TextBlock x:Name="SearchStatus" DockPanel.Dock="Right" VerticalAlignment="Center"
+                                   Classes="hint" Margin="10,0,0,0"/>
+                        <Button DockPanel.Dock="Right" Content="Clear" Click="SearchClear_Click"
+                                Padding="12,4" Margin="6,0,0,0"/>
+                        <Button DockPanel.Dock="Right" Content="Find Next" Click="FindNext_Click"
+                                Padding="12,4" Margin="6,0,0,0"/>
+                        <TextBox x:Name="SearchBox" Watermark="Search guide…" KeyDown="SearchBox_KeyDown"/>
+                    </DockPanel>
+                </Border>
+            </StackPanel>
+
+            <ScrollViewer x:Name="MainScrollViewer" Padding="24,12,24,20" VerticalScrollBarVisibility="Auto">
+                <StackPanel x:Name="ContentPanel" Spacing="10" MaxWidth="820">
+
+                    <TextBlock Classes="h2" Text="Contents" Margin="0,4,0,0"/>
+                    <StackPanel Spacing="6" Margin="8,0,0,0">
+                        <Button Classes="link" Content="1. Opening files" Click="GoToSection1"/>
+                        <Button Classes="link" Content="2. Viewing and navigation" Click="GoToSection2"/>
+                        <Button Classes="link" Content="3. Histogram and stretch" Click="GoToSection3"/>
+                        <Button Classes="link" Content="4. Aperture photometry" Click="GoToSection4"/>
+                        <Button Classes="link" Content="5. Gain and scaling" Click="GoToSection5"/>
+                        <Button Classes="link" Content="6. Why 100,000 electrons is a sensible default" Click="GoToSection6"/>
+                        <Button Classes="link" Content="7. One-shot colour (OSC) sensors" Click="GoToSection7"/>
+                        <Button Classes="link" Content="8. Camera profiles" Click="GoToSection8"/>
+                        <Button Classes="link" Content="9. Exposure meter" Click="GoToSection9"/>
+                        <Button Classes="link" Content="10. Sequence playback" Click="GoToSection10"/>
+                        <Button Classes="link" Content="11. Plate-solved frames: WCS, Plate Solve and Find Target" Click="GoToSection11"/>
+                        <Button Classes="link" Content="12. FITS header viewer / editor" Click="GoToSection12"/>
+                        <Button Classes="link" Content="13. Diagnostics" Click="GoToSection13"/>
+                    </StackPanel>
+
+                    <!-- 1 -->
+                    <TextBlock x:Name="Section1" Classes="h2" Text="1. Opening files" Margin="0,16,0,0"/>
+                    <TextBlock TextWrapping="Wrap" Text="Open FITS File… loads a single FITS file (.fits/.fit/.fts). Open Directory… loads every FITS file in a folder as a steppable sequence (see Sequence playback)."/>
+                    <TextBlock TextWrapping="Wrap" Text="Drag and drop: drop FITS files or a folder anywhere on the window. One file opens on its own; several files, or a dropped folder, open as a steppable sequence. Non-FITS items are ignored."/>
+
+                    <!-- 2 -->
+                    <TextBlock x:Name="Section2" Classes="h2" Text="2. Viewing and navigation" Margin="0,16,0,0"/>
+                    <TextBlock TextWrapping="Wrap" Text="Zoom In / Zoom Out / Fit / 1:1 are on the toolbar. The scroll wheel zooms in and out centred on the cursor, and a middle-mouse drag pans the image."/>
+                    <TextBlock TextWrapping="Wrap" Text="Left-click a star to auto-centroid and size an aperture (see Aperture photometry). Left-click-drag an existing aperture to move the whole aperture/annulus set without changing its size."/>
+                    <TextBlock TextWrapping="Wrap" Text="The readout beside the filename follows the cursor: X, Y, the pixel value in ADU, plus RA/Dec on a plate-solved frame (see Plate-solved frames)."/>
+
+                    <!-- 3 -->
+                    <TextBlock x:Name="Section3" Classes="h2" Text="3. Histogram and stretch" Margin="0,16,0,0"/>
+                    <TextBlock TextWrapping="Wrap" Text="Auto Stretch applies ZScale (the IRAF/DS9 algorithm). You can also drag the red (black-point) and yellow (white-point) lines directly on the histogram, or use the Black/White sliders with their +/- buttons for fine adjustment."/>
+                    <TextBlock TextWrapping="Wrap" Text="The sliders and histogram map onto a robust display range (0.1-99.9 percentile, padded), not the raw full data range — otherwise a handful of saturated star cores would compress the entire useful stretch into a sliver of slider travel."/>
+
+                    <!-- 4 -->
+                    <TextBlock x:Name="Section4" Classes="h2" Text="4. Aperture photometry" Margin="0,16,0,0"/>
+                    <TextBlock TextWrapping="Wrap" Text="Click a star to auto-centroid and size an aperture plus sky annulus from the radius that MAXIMISES SNR, found by walking the curve of growth outward from the centroid."/>
+                    <TextBlock TextWrapping="Wrap" Text="Why not 1.5x FWHM? That rule assumes the star dominates its own noise, which is false for any faint target. Past the optimum, each extra ring of pixels adds more sky noise than starlight, so a bigger aperture collects more signal but gives WORSE precision. On a real faint frame the optimum was r=9 (SNR 42.8) where 1.5x FWHM would have picked r=17 (SNR 32.3). It also means a star too faint to measure an FWHM on no longer falls back to a fixed guess — the curve of growth is still measurable."/>
+                    <TextBlock TextWrapping="Wrap" Text="Apertures use fractional pixel overlap: a pixel on the boundary contributes the share of its area inside the circle, not all-or-nothing. This stops the measured flux stepping as a star drifts sub-pixel between frames (measured: 9.8 to 7.0 mmag of drift scatter). Aperture pixels is therefore an effective area and can be fractional."/>
+                    <TextBlock TextWrapping="Wrap" Text="The sky annulus automatically grows outward until it reaches genuinely flat background, rather than trusting a fixed offset from the aperture radius — a bright star's wing can still be declining well past that."/>
+                    <TextBlock TextWrapping="Wrap" Text="The Aperture radius / Annulus inner / Annulus outer fields let you type in (or spin) exact sizes at any time — useful when you want to override the auto-sizing for a particular star. Clear Aperture removes the current aperture."/>
+
+                    <!-- 5 -->
+                    <TextBlock x:Name="Section5" Classes="h2" Text="5. Gain and scaling" Margin="0,16,0,0"/>
+                    <TextBlock TextWrapping="Wrap" Text="Gain (e-/ADU) auto-fills from the FITS header's EGAIN keyword, or you can type it. Not every file has EGAIN (MicroObservatory frames don't): the previous value is then kept, and Gain source in Results reads 'carried over' rather than claiming it came from this file. Watch that when switching between cameras — a carried-over gain from a different camera makes every electron figure wrong."/>
+                    <TextBlock TextWrapping="Wrap" Text="ADU scale corrects for sensors that pack a lower-bit-depth ADC reading into a wider file (e.g. 12-bit into 16-bit). It is auto-detected on raw sensor files; on calibrated/float files, detection is unreliable, so the field is left as-is instead of silently assuming no scaling — type in the value from a raw frame shot with the same camera/gain."/>
+                    <TextBlock TextWrapping="Wrap" Text="Full well (e-) is the per-PIXEL saturation ceiling; it enables a true saturation check in electrons that also works on calibrated files. It is auto-derived on load, with Full well source in Results showing where the value came from. No capture software records full well as a keyword, but the ceiling that matters is min(physical pixel capacity, ADC ceiling x Gain), and the right-hand term follows from BITPIX, Gain and ADU scale. A 16-bit camera at 0.24 e-/ADU tops out near 15,900 e-, NOT its headline gain-0 figure — entering the datasheet number there would understate saturation ~3x, so a stored value above the derived ceiling is replaced. Type in a LOWER value and it is kept (shown as 'pixel-limited'), since then the pixel really does fill first."/>
+                    <TextBlock TextWrapping="Wrap" Text="Target electrons is the TOTAL electron count summed over the whole aperture, not a per-pixel value. It is therefore not capped by Full well, and normally exceeds it by a wide margin."/>
+
+                    <!-- 6 -->
+                    <TextBlock x:Name="Section6" Classes="h2" Text="6. Why 100,000 electrons is a sensible default for any camera" Margin="0,16,0,0"/>
+                    <TextBlock TextWrapping="Wrap" Text="Unlike Gain/ADU scale/Full well, Target electrons is not a property of your sensor — an electron is an electron. It follows from photon noise alone: SNR = sqrt(N), so precision ~ 1.0857/sqrt(N). 50,000 e- gives SNR ~224 (4.9 mmag); 100,000 e- gives SNR ~316 (3.4 mmag); 1,000,000 e- gives SNR ~1000 (1.1 mmag)."/>
+                    <TextBlock TextWrapping="Wrap" Text="100,000 sits in the useful range for exoplanet transits (~1-5 mmag). Raise it for shallow transits or precise variable work; the number to change is driven by the precision you need, not by the camera."/>
+                    <TextBlock TextWrapping="Wrap" Text="Two caveats. Those figures are a best case: sky background, read noise and scintillation add on top, so hitting the target does not guarantee that precision. And on a bright, sharply-focused star the peak pixel can saturate before the aperture sum ever reaches the target — if the meter alternates between NEAR SATURATION and LOW SIGNAL as you adjust exposure, that is it telling you one frame cannot do both. Shorten the exposure and stack, or defocus slightly."/>
+
+                    <!-- 7 -->
+                    <TextBlock x:Name="Section7" Classes="h2" Text="7. One-shot colour (OSC) sensors" Margin="0,16,0,0"/>
+                    <TextBlock TextWrapping="Wrap" Text="The Colour filter row in Results reports whether the frame is an undebayered Bayer mosaic (e.g. 'OSC (RGGB)') or mono."/>
+                    <TextBlock TextWrapping="Wrap" Text="None of the numbers above change for a colour sensor. Gain, ADU scale and full well are properties of the readout electronics and the silicon, not of the colour filter sitting above a pixel, so the electron conversion is exactly as valid on a mosaic. Raw CFA data is in fact the honest place to count electrons — debayering interpolates, which invents values that were never measured."/>
+                    <TextBlock TextWrapping="Wrap" Text="What changes is INTERPRETATION. An aperture on a mosaic sums R/G/G/B pixels of very different response (on a real red star: R 32%, G 58%, B 10% of the flux), so the result is a blended bandpass matching no standard filter, and it shifts slightly as the star drifts across the CFA. Both are fine for differential photometry as long as comparison stars are similar in colour and the same aperture is used throughout."/>
+                    <TextBlock TextWrapping="Wrap" Text="Note that 2x2 'superpixel' binning is NOT offered, despite sounding like the obvious fix: measured on a real frame it made drift scatter worse (17.8 mmag vs 9.8), because halving the resolution coarsens the aperture edge more than merging the colour planes helps."/>
+
+                    <!-- 8 -->
+                    <TextBlock x:Name="Section8" Classes="h2" Text="8. Camera profiles" Margin="0,16,0,0"/>
+                    <TextBlock TextWrapping="Wrap" Text="Save your camera's Gain/ADU scale/Full well/Target electrons under a name (e.g. 'ASI183MM Pro - gain 111'), then Load it again later instead of retyping every session. Delete removes the selected saved profile."/>
+                    <TextBlock TextWrapping="Wrap" Text="Your last-used values are also remembered automatically between sessions, independent of any saved named profile. Both are stored in %AppData%\SimpleFitsViewer\, NOT in the app's own folder, so they survive upgrades, reinstalls and rebuilds."/>
+
+                    <!-- 9 -->
+                    <TextBlock x:Name="Section9" Classes="h2" Text="9. Exposure meter" Margin="0,16,0,0"/>
+                    <TextBlock TextWrapping="Wrap" Text="The Exposure Meter reports GOOD / LOW SIGNAL / EXCESS SIGNAL / TOO FAINT / NEAR SATURATION, with a plain-language recommendation and a suggested new exposure time when the FITS header has EXPTIME or EXPOSURE."/>
+
+                    <!-- 10 -->
+                    <TextBlock x:Name="Section10" Classes="h2" Text="10. Sequence playback (Open Directory)" Margin="0,16,0,0"/>
+                    <TextBlock TextWrapping="Wrap" Text="The transport controls step to first / previous / next / last frame, or play a 1 fps loop (wrapping at the end); the slider jumps to any frame. An aperture you've placed stays put as you step through frames from the same field of view, so its photometry re-measures automatically frame to frame — handy for watching how Total Electrons / Exposure Meter evolve across a session. The current black/white stretch is kept too; only a fresh Open FITS File or Open Directory resets the aperture and re-auto-stretches."/>
+
+                    <!-- 11 -->
+                    <TextBlock x:Name="Section11" Classes="h2" Text="11. Plate-solved frames: WCS, Plate Solve and Find Target" Margin="0,16,0,0"/>
+                    <TextBlock TextWrapping="Wrap" Text="If the file carries a TAN world-coordinate solution, the WCS row in Results shows the projection, whether SIP distortion terms are present, and the plate scale in arcsec/pixel. 'not plate solved' means the header has no usable solution. The cursor readout then also shows RA/Dec, and Center (RA, Dec) in Results gives the sky position of the aperture centre."/>
+                    <TextBlock TextWrapping="Wrap" FontWeight="Bold" Text="Plate Solve (via StarFix)"/>
+                    <TextBlock TextWrapping="Wrap" Text="If a frame is not plate solved, the Plate Solve (StarFix) button solves it in place using an installed copy of StarFix, then fills in the WCS so the cursor RA/Dec, the WCS row, and Find Target all work."/>
+                    <TextBlock TextWrapping="Wrap" Text="StarFix is a DIRECTED solver, not a blind one — it needs a rough starting position. FluxLab uses the frame's own RA/DEC header keywords when present (the usual case for NINA captures); when the header has none, type the target name in Find Target first and that is used as the hint."/>
+                    <TextBlock TextWrapping="Wrap" Text="The solve writes the WCS straight into the file (like ASTAP). It needs StarFix and its Gaia catalog installed; FluxLab auto-detects a standard StarFix install, and Tools > Plate Solver lets you point at a custom location and shows whether the solver and catalog are found."/>
+                    <TextBlock TextWrapping="Wrap" FontWeight="Bold" Text="Find Target"/>
+                    <TextBlock TextWrapping="Wrap" Text="Type a name and press Find (or Enter) to place the aperture on it. The box pre-fills from the frame's OBJECT keyword when there is one; a name you type yourself is not overwritten when the next file loads."/>
+                    <TextBlock TextWrapping="Wrap" Text="Three catalogues are tried in order: AAVSO VSX (variable stars), then the NASA Exoplanet Archive (host star or planet name), then SIMBAD (by identifier alias, so any known designation works; spacing and case don't matter)."/>
+                    <TextBlock TextWrapping="Wrap" Text="Proper motion is applied. This is not cosmetic: the catalogues quote positions at DIFFERENT reference epochs (VSX and SIMBAD at J2000, the Exoplanet Archive at J2015.5), and on a real 2026 frame TOI-4479's uncorrected Exoplanet Archive position landed 6.75 px (1.81 arcsec) from the star — far enough that the centroid search had no margin left. Propagating to the frame's own DATE-OBS cuts it to 1.95 px. The status line always says which epoch was used and how far the final lock sits from the catalogue position, flagging anything past 3 arcsec — that distance is what distinguishes a correct lock from a snap onto a close neighbour. Every lookup is logged to Diagnostics."/>
+
+                    <!-- 12 -->
+                    <TextBlock x:Name="Section12" Classes="h2" Text="12. FITS header viewer / editor" Margin="0,16,0,0"/>
+                    <TextBlock TextWrapping="Wrap" Text="Tools > FITS Header… lets you search, view, and edit every card in the loaded file's header. Double-click a Value or Comment cell to edit it; Add Keyword… / Delete Keyword add or remove cards (required keywords like SIMPLE/BITPIX/NAXIS can't be deleted). Save to File writes your changes back into the FITS file in place (with a confirmation first) — pixel data is never touched. Not available for tile-compressed (.fz-style) files."/>
+
+                    <!-- 13 -->
+                    <TextBlock x:Name="Section13" Classes="h2" Text="13. Diagnostics" Margin="0,16,0,0"/>
+                    <TextBlock TextWrapping="Wrap" Text="Tools > Diagnostics is a log of errors and events encountered this session, with Save and Clear. It records plate-solve and Find Target internals (which catalogues were tried, what each returned, the epoch handling, the final pixel position) — check there first when a name doesn't resolve or a solve fails."/>
+                    <TextBlock TextWrapping="Wrap" Classes="hint" Text="Not yet in this version: colormap variety beyond grayscale; pixel data for tile-compressed (.fz) files."/>
+
+                    <Border Height="60"/>
+
+                </StackPanel>
+            </ScrollViewer>
+
+        </DockPanel>
+
+        <Button Classes="fab" Content="&#x2191;" Click="OnBackToTopClick" ToolTip.Tip="Back to top"
+                HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,28,28"/>
+    </Grid>
 
 </UserControl>
