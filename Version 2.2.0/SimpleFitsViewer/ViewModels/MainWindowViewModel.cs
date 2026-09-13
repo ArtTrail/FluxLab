@@ -151,11 +151,26 @@ public partial class MainWindowViewModel : ViewModelBase
 
         _profile.GainEPerAdu = p.GainEPerAdu;
         _profile.AduScale = p.AduScale;
-        _profile.FullWellElectrons = p.FullWellElectrons;
-        _profile.FullWellSource = "manual entry";   // a saved profile's value is user-supplied
         _profile.TargetElectrons = p.TargetElectrons;
         _profile.GainSource = "manual entry";
         _profile.AduScaleSource = "manual entry";
+
+        _profile.FullWellElectrons = p.FullWellElectrons;
+        if (p.FullWellElectrons is not null)
+        {
+            _profile.FullWellSource = "manual entry";   // the profile carries an explicit value
+        }
+        else
+        {
+            // The profile deliberately leaves full well blank so it auto-derives per frame (e.g. a
+            // camera where the ADC ceiling, not the pixel well, sets saturation). Re-derive for the
+            // currently-open frame; leave it blank if nothing is loaded. Without this, switching
+            // from a profile that HAD a full well left the previous camera's value in place.
+            _profile.FullWellSource = "";
+            if (_pixels.Length > 0)
+                CameraProfileResolver.ResolveFullWell(_profile, _header);
+        }
+
         SyncProfileTextFromResolved();
         SaveProfile();
         SaveAsNameText = p.Name;
@@ -1115,7 +1130,7 @@ public partial class MainWindowViewModel : ViewModelBase
         _suppressProfileSync = true;
         GainText = _profile.GainEPerAdu?.ToString("G6") ?? GainText;
         AduScaleText = _profile.AduScale?.ToString("G6") ?? "";
-        FullWellText = _profile.FullWellElectrons?.ToString("G6") ?? FullWellText;
+        FullWellText = _profile.FullWellElectrons?.ToString("G6") ?? "";   // clear when null, don't keep a stale value
         TargetElectronsText = _profile.TargetElectrons.ToString("G6");
         GainSourceText = string.IsNullOrEmpty(_profile.GainSource) ? "manual entry" : _profile.GainSource;
         AduScaleSourceText = string.IsNullOrEmpty(_profile.AduScaleSource) ? "manual entry" : _profile.AduScaleSource;
