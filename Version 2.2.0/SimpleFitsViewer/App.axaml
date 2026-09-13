@@ -83,6 +83,10 @@
             <Setter Property="Width" Value="48"/>
             <Setter Property="Height" Value="48"/>
             <Setter Property="Padding" Value="0"/>
+            <!-- Centre the glyph in the circle. FluxLab has no global Button content-centering rule
+                 (that would restyle the main window), so the fab sets it itself. -->
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
         </Style>
         <Style Selector="Button.fab:pointerover /template/ ContentPresenter">
             <Setter Property="Background" Value="{StaticResource BrushBtnHov}"/>
