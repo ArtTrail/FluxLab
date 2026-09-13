@@ -19,10 +19,10 @@ public static class RevisionHistoryData
 {
     public static IReadOnlyList<RevisionEntry> All { get; } = new[]
     {
-        new RevisionEntry("2.2.0", "2026-09-11", new[]
+        new RevisionEntry("2.2.0", "2026-09-12", new[]
         {
             "Renamed: the app is now FluxLab (was Simple FITS Viewer). Saved camera profiles are unaffected -- they still live in the same place and carry over automatically.",
-            "New look: menu bar, header/logo banner, About, User Guide and Revision History now follow the shared visual style of the sibling apps (StarFix, VariLab, TransitLab) -- the Nord palette, the logo header, and a searchable User Guide.",
+            "New look: menu bar, header/logo banner, About, User Guide and Revision History now follow the shared visual style of the sibling apps (StarFix, VariLab, TransitLab) -- the Nord palette, the logo header, and a User Guide with a searchable body, a hyperlinked table of contents, and a back-to-top button.",
             "New: Plate Solve. A button solves the displayed frame in place by driving an installed StarFix headlessly, then fills in the WCS so the cursor RA/Dec, the WCS row and Find Target all work. StarFix is a directed solver, so it uses the frame's own RA/DEC header keywords as the hint, or the Find Target name when the header has none. FluxLab auto-detects a standard StarFix install (solver + Gaia catalog); Tools > Plate Solver allows a custom path and shows whether both are found.",
             "New: drag and drop. Drop FITS files or a folder anywhere on the window to open them -- one file opens on its own, several files or a dropped folder open as a steppable sequence, and non-FITS items are ignored.",
             "New: WCS support. A TAN plate solution in the header (with SIP distortion terms if present) is read and used. The cursor readout gains RA/Dec, Results gains the aperture's sky position and a \"WCS\" row naming the projection and plate scale. Validated against astropy over a 121-point grid on two real frames (one with SIP, one without), agreeing to 0.0002 mas. A header can carry BOTH a CD matrix and CDELT+PC and they can disagree (~3.3 px by the corners on one real frame); PC+CDELT takes precedence.",
