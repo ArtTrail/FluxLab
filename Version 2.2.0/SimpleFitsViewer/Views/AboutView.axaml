@@ -15,8 +15,6 @@
                            HorizontalAlignment="Center" Margin="0,4,0,0"/>
                 <TextBlock Classes="hint" Text="© Art Trail 2026"
                            HorizontalAlignment="Center" Margin="0,4,0,0"/>
-                <TextBlock Classes="hint" Text="(formerly Simple FITS Viewer)"
-                           HorizontalAlignment="Center" Margin="0,4,0,0"/>
 
                 <Rectangle Height="1" Fill="{StaticResource BrushSep}" Margin="0,18,0,18"/>
 
@@ -45,6 +43,12 @@
                 <TextBlock Classes="hint" TextWrapping="Wrap" HorizontalAlignment="Center" TextAlignment="Center"
                            Margin="0,2,0,10"
                            Text="Reference implementation the hand-rolled ZScale, WCS (TAN+SIP) and photometry were validated against&#x0a;astropy.org"/>
+
+                <TextBlock Classes="body" TextWrapping="Wrap" HorizontalAlignment="Center" TextAlignment="Center"
+                           Text="StarFix"/>
+                <TextBlock Classes="hint" TextWrapping="Wrap" HorizontalAlignment="Center" TextAlignment="Center"
+                           Margin="0,2,0,10"
+                           Text="Optional plate-solving engine FluxLab drives for the Plate Solve button&#x0a;github.com/ArtTrail/StarFix"/>
 
                 <TextBlock Classes="body" TextWrapping="Wrap" HorizontalAlignment="Center" TextAlignment="Center"
                            Text="AAVSO VSX  ·  NASA Exoplanet Archive  ·  SIMBAD"/>

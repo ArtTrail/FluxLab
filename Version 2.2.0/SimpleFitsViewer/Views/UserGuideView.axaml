@@ -50,6 +50,7 @@
                         <Button Classes="link" Content="11. Plate-solved frames: WCS, Plate Solve and Find Target" Click="GoToSection11"/>
                         <Button Classes="link" Content="12. FITS header viewer / editor" Click="GoToSection12"/>
                         <Button Classes="link" Content="13. Diagnostics" Click="GoToSection13"/>
+                        <Button Classes="link" Content="14. References" Click="GoToSection14"/>
                     </StackPanel>
 
                     <!-- 1 -->
@@ -129,6 +130,23 @@
                     <TextBlock x:Name="Section13" Classes="h2" Text="13. Diagnostics" Margin="0,16,0,0"/>
                     <TextBlock TextWrapping="Wrap" Text="Tools > Diagnostics is a log of errors and events encountered this session, with Save and Clear. It records plate-solve and Find Target internals (which catalogues were tried, what each returned, the epoch handling, the final pixel position) — check there first when a name doesn't resolve or a solve fails."/>
                     <TextBlock TextWrapping="Wrap" Classes="hint" Text="Not yet in this version: colormap variety beyond grayscale; pixel data for tile-compressed (.fz) files."/>
+
+                    <!-- 14 -->
+                    <TextBlock x:Name="Section14" Classes="h2" Text="14. References" Margin="0,16,0,0"/>
+                    <TextBlock TextWrapping="Wrap" Text="The algorithms and data sources FluxLab is built on, for anyone who wants to read further. FluxLab implements the photometry, ZScale display stretch, and WCS (TAN+SIP) in C# and validated them against astropy [1]; it does not bundle these packages."/>
+                    <TextBlock TextWrapping="Wrap" Text="[1] Astropy Collaboration, Price-Whelan, A. M., et al. 2022, &quot;The Astropy Project: Sustaining and Growing a Community-oriented Open-source Project and the Latest Major Release (v5.0),&quot; The Astrophysical Journal, 935, 167. (Reference implementation FluxLab's ZScale, WCS, and photometry were validated against.)"/>
+                    <TextBlock TextWrapping="Wrap" Text="[2] Howell, S. B. 2006, &quot;Handbook of CCD Astronomy,&quot; 2nd ed., Cambridge University Press. (Aperture photometry, the signal-to-noise equation, and sky-background estimation.)"/>
+                    <TextBlock TextWrapping="Wrap" Text="[3] Naylor, T. 1998, &quot;An optimal extraction algorithm for imaging photometry,&quot; Monthly Notices of the Royal Astronomical Society, 296, 339. (Why the highest-SNR aperture is not simply the brightest-enclosing one — the basis for FluxLab's SNR-optimal, curve-of-growth aperture sizing.)"/>
+                    <TextBlock TextWrapping="Wrap" Text="[4] Beers, T. C., Flynn, K., &amp; Gebhardt, K. 1990, &quot;Measures of Location and Scale for Velocities in Clusters of Galaxies — A Robust Approach,&quot; The Astronomical Journal, 100, 32. (Robust median/MAD statistics, as used for FluxLab's sky estimate.)"/>
+                    <TextBlock TextWrapping="Wrap" Text="[5] Greisen, E. W., &amp; Calabretta, M. R. 2002, &quot;Representations of world coordinates in FITS,&quot; Astronomy &amp; Astrophysics, 395, 1061. (FITS WCS, Paper I.)"/>
+                    <TextBlock TextWrapping="Wrap" Text="[6] Calabretta, M. R., &amp; Greisen, E. W. 2002, &quot;Representations of celestial coordinates in FITS,&quot; Astronomy &amp; Astrophysics, 395, 1077. (The TAN / gnomonic projection FluxLab reads, Paper II.)"/>
+                    <TextBlock TextWrapping="Wrap" Text="[7] Shupe, D. L., Moshir, M., Li, J., et al. 2005, &quot;The SIP Convention for Representing Distortion in FITS Image Headers,&quot; ASP Conference Series, 347, 491. (The SIP distortion terms FluxLab applies.)"/>
+                    <TextBlock TextWrapping="Wrap" Text="[8] Tody, D. 1986, &quot;The IRAF Data Reduction and Analysis System,&quot; Proc. SPIE, 627, 733. (IRAF, the origin of the ZScale display algorithm.)"/>
+                    <TextBlock TextWrapping="Wrap" Text="[9] Joye, W. A., &amp; Mandel, E. 2003, &quot;New Features of SAOImage DS9,&quot; ASP Conference Series, 295, 489. (DS9, whose ZScale behaviour FluxLab's Auto Stretch matches.)"/>
+                    <TextBlock TextWrapping="Wrap" Text="[10] Gaia Collaboration, Vallenari, A., Brown, A. G. A., et al. 2023, &quot;Gaia Data Release 3: Summary of the content and survey properties,&quot; Astronomy &amp; Astrophysics, 674, A1. (Proper motions and positions underlying Find Target and StarFix plate solving.)"/>
+                    <TextBlock TextWrapping="Wrap" Text="[11] Watson, C. L., Henden, A. A., &amp; Price, A. 2006, &quot;The International Variable Star Index (VSX),&quot; Society for Astronomical Sciences Annual Symposium, 25, 47. (Find Target's variable-star source.)"/>
+                    <TextBlock TextWrapping="Wrap" Text="[12] Akeson, R. L., Chen, X., Ciardi, D., et al. 2013, &quot;The NASA Exoplanet Archive: Data and Tools for Exoplanet Research,&quot; Publications of the Astronomical Society of the Pacific, 125, 989. (Find Target's exoplanet-host source.)"/>
+                    <TextBlock TextWrapping="Wrap" Text="[13] Wenger, M., Ochsenbein, F., Egret, D., et al. 2000, &quot;The SIMBAD astronomical database,&quot; Astronomy &amp; Astrophysics Supplement Series, 143, 9. (Find Target's general-object source.)"/>
 
                     <Border Height="60"/>
 

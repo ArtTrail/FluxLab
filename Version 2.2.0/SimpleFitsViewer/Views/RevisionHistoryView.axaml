@@ -4,6 +4,16 @@
              x:Class="SimpleFitsViewer.Views.RevisionHistoryView"
              Background="{StaticResource BrushBg}">
 
+    <!-- Base text scoped to this view only, so the body matches StarFix's Arial/20 revision
+         history without restyling the main photometry window. -->
+    <UserControl.Styles>
+        <Style Selector="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource BrushFg}"/>
+            <Setter Property="FontFamily" Value="Arial"/>
+            <Setter Property="FontSize" Value="20"/>
+        </Style>
+    </UserControl.Styles>
+
     <ScrollViewer HorizontalScrollBarVisibility="Disabled">
         <StackPanel Margin="32,20,32,24" Spacing="6">
             <TextBlock Classes="title" Text="FluxLab — Revision History" Margin="0,0,0,10"/>
@@ -17,8 +27,8 @@
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate x:DataType="x:String">
                                         <Grid ColumnDefinitions="Auto,*" Margin="0,2,0,0">
-                                            <TextBlock Grid.Column="0" Classes="body" Text="•  "/>
-                                            <TextBlock Grid.Column="1" Classes="body" Text="{Binding}" TextWrapping="Wrap"/>
+                                            <TextBlock Grid.Column="0" Text="•  "/>
+                                            <TextBlock Grid.Column="1" Text="{Binding}" TextWrapping="Wrap"/>
                                         </Grid>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
