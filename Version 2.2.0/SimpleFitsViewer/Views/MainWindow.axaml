@@ -154,23 +154,50 @@
         <Border Grid.Column="1" Background="#252535" Padding="10">
             <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <StackPanel Spacing="4">
-                    <TextBlock Text="Aperture Photometry" FontWeight="Bold" FontSize="13" Foreground="White" Margin="0,0,0,4"/>
+                    <Grid ColumnDefinitions="Auto,Auto,*,Auto" Margin="0,0,0,4">
+                        <TextBlock Grid.Column="0" Text="Aperture Photometry" FontWeight="Bold" FontSize="13"
+                                   Foreground="White" VerticalAlignment="Center"/>
+                        <Button Grid.Column="1" Classes="help" Content="?" Margin="6,0,0,0" ToolTip.Tip="What is this?">
+                            <Button.Flyout>
+                                <Flyout>
+                                    <TextBlock MaxWidth="340" TextWrapping="Wrap"
+                                               Text="Click a star to auto-centroid and size an aperture at the radius that maximises SNR (walking the curve of growth). Click-drag an existing aperture to move it without resizing, or type exact radii under Geometry. The Results and Exposure Meter update on every measurement."/>
+                                </Flyout>
+                            </Button.Flyout>
+                        </Button>
+                        <Button Grid.Column="3" Content="Clear Aperture" Command="{Binding ClearApertureCommand}"
+                                Background="#6a1a1a" Foreground="White" Padding="8,3" VerticalAlignment="Center"/>
+                    </Grid>
                     <TextBlock Text="{Binding InstructionText}" Foreground="#8888bb" FontStyle="Italic"
                                TextWrapping="Wrap" Margin="0,0,0,8"/>
-                    <Button Content="Clear Aperture" Command="{Binding ClearApertureCommand}"
-                            Background="#6a1a1a" Foreground="White" HorizontalAlignment="Stretch" Margin="0,0,0,10"/>
 
-                    <TextBlock Text="Plate Solve" FontWeight="Bold" Foreground="#66aaff" Margin="0,4,0,2"/>
-                    <TextBlock Text="Solves this frame via an installed StarFix and writes the WCS into the file. Uses the header's RA/DEC as the hint, or the Find Target name below when the header has none."
-                               Foreground="#555577" FontStyle="Italic" TextWrapping="Wrap" Margin="0,0,0,3"/>
+                    <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,4,0,2">
+                        <TextBlock Text="Plate Solve" FontWeight="Bold" Foreground="#66aaff" VerticalAlignment="Center"/>
+                        <Button Classes="help" Content="?" ToolTip.Tip="About Plate Solve">
+                            <Button.Flyout>
+                                <Flyout>
+                                    <TextBlock MaxWidth="340" TextWrapping="Wrap"
+                                               Text="Solves this frame via an installed StarFix and writes the WCS into the file. Uses the header's RA/DEC as the hint, or the Find Target name below when the header has none."/>
+                                </Flyout>
+                            </Button.Flyout>
+                        </Button>
+                    </StackPanel>
                     <Button Content="Plate Solve (StarFix)" Command="{Binding SolveCommand}"
                             IsEnabled="{Binding !IsSolving}" HorizontalAlignment="Stretch"/>
                     <TextBlock Text="{Binding SolveStatusText}" Foreground="{Binding SolveStatusColor}"
                                TextWrapping="Wrap" Margin="0,3,0,10"/>
 
-                    <TextBlock Text="Find Target" FontWeight="Bold" Foreground="#66aaff" Margin="0,4,0,2"/>
-                    <TextBlock Text="Looks the name up in VSX, then the NASA Exoplanet Archive, then SIMBAD, and places the aperture there. Needs a plate-solved frame."
-                               Foreground="#555577" FontStyle="Italic" TextWrapping="Wrap" Margin="0,0,0,3"/>
+                    <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,4,0,2">
+                        <TextBlock Text="Find Target" FontWeight="Bold" Foreground="#66aaff" VerticalAlignment="Center"/>
+                        <Button Classes="help" Content="?" ToolTip.Tip="About Find Target">
+                            <Button.Flyout>
+                                <Flyout>
+                                    <TextBlock MaxWidth="340" TextWrapping="Wrap"
+                                               Text="Looks the name up in VSX, then the NASA Exoplanet Archive, then SIMBAD, and places the aperture there (with proper motion applied). Needs a plate-solved frame. The box pre-fills from the frame's OBJECT keyword."/>
+                                </Flyout>
+                            </Button.Flyout>
+                        </Button>
+                    </StackPanel>
                     <Grid ColumnDefinitions="*,Auto">
                         <TextBox Grid.Column="0" Text="{Binding TargetNameText}"
                                  Watermark="Target name, e.g. TOI-4479 or RR Lyr">
@@ -183,9 +210,17 @@
                     <TextBlock Text="{Binding TargetStatusText}" Foreground="{Binding TargetStatusColor}"
                                TextWrapping="Wrap" Margin="0,3,0,10"/>
 
-                    <TextBlock Text="Geometry (pixels)" FontWeight="Bold" Foreground="#66aaff" Margin="0,4,0,2"/>
-                    <TextBlock Text="Click a star = re-center + auto-size.  Click-drag an existing set = move it without resizing."
-                               Foreground="#555577" FontStyle="Italic" TextWrapping="Wrap" Margin="0,0,0,3"/>
+                    <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,4,0,2">
+                        <TextBlock Text="Geometry (pixels)" FontWeight="Bold" Foreground="#66aaff" VerticalAlignment="Center"/>
+                        <Button Classes="help" Content="?" ToolTip.Tip="About Geometry">
+                            <Button.Flyout>
+                                <Flyout>
+                                    <TextBlock MaxWidth="340" TextWrapping="Wrap"
+                                               Text="Click a star = re-center + auto-size. Click-drag an existing set = move it without resizing. Or type exact aperture/annulus radii here to override the auto-sizing."/>
+                                </Flyout>
+                            </Button.Flyout>
+                        </Button>
+                    </StackPanel>
                     <Grid ColumnDefinitions="140,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="3">
                         <TextBlock Grid.Row="0" Grid.Column="0" Text="Aperture radius" Foreground="#cccccc" VerticalAlignment="Center"/>
                         <NumericUpDown Grid.Row="0" Grid.Column="1" Value="{Binding ApertureRadiusValue}"
@@ -201,7 +236,17 @@
                                        Background="#1e1e30" BorderBrush="#444466" Foreground="White"/>
                     </Grid>
 
-                    <TextBlock Text="Camera Profiles" FontWeight="Bold" Foreground="#66aaff" Margin="0,10,0,2"/>
+                    <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,10,0,2">
+                        <TextBlock Text="Camera Profiles" FontWeight="Bold" Foreground="#66aaff" VerticalAlignment="Center"/>
+                        <Button Classes="help" Content="?" ToolTip.Tip="About Camera Profiles">
+                            <Button.Flyout>
+                                <Flyout>
+                                    <TextBlock MaxWidth="340" TextWrapping="Wrap"
+                                               Text="Save your camera's Gain / ADU scale / Full well / Target electrons under a name and reload it later. Your last-used values are also remembered automatically. Stored in %AppData%\SimpleFitsViewer\, so they survive upgrades, reinstalls and rebuilds."/>
+                                </Flyout>
+                            </Button.Flyout>
+                        </Button>
+                    </StackPanel>
                     <Grid ColumnDefinitions="*,Auto,Auto" RowSpacing="3">
                         <ComboBox Grid.Column="0" ItemsSource="{Binding ProfileNames}"
                                   SelectedItem="{Binding SelectedProfileName}" HorizontalAlignment="Stretch"/>
@@ -214,15 +259,29 @@
                         <Button Grid.Column="1" Content="Save As" Command="{Binding SaveAsProfileCommand}" Margin="4,0,0,0"/>
                     </Grid>
 
-                    <TextBlock Text="Gain &amp; Scaling" FontWeight="Bold" Foreground="#66aaff" Margin="0,10,0,2"/>
+                    <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,10,0,2">
+                        <TextBlock Text="Gain &amp; Scaling" FontWeight="Bold" Foreground="#66aaff" VerticalAlignment="Center"/>
+                        <Button Classes="help" Content="?" ToolTip.Tip="About Gain &amp; Scaling">
+                            <Button.Flyout>
+                                <Flyout>
+                                    <TextBlock MaxWidth="360" TextWrapping="Wrap"
+                                               Text="Gain (e-/ADU) auto-fills from the header's EGAIN. ADU scale is the bit-shift divisor: 1 for a 16-bit sensor, 16 for a 12-bit sensor stored in a 16-bit file. Full well is the per-pixel saturation ceiling -- leave it blank to auto-derive (min of physical capacity and ADC ceiling x gain). Target electrons is your desired total signal for precision (100,000 -> ~3.4 mmag); it is not a camera property."/>
+                                </Flyout>
+                            </Button.Flyout>
+                        </Button>
+                    </StackPanel>
                     <Grid ColumnDefinitions="140,*" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="3">
-                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Gain (e-/ADU)" Foreground="#cccccc" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Gain (e-/ADU)" Foreground="#cccccc" VerticalAlignment="Center"
+                                   ToolTip.Tip="Electrons per ADU. Auto-filled from the FITS header's EGAIN keyword; type it if the header has none."/>
                         <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding GainText}"/>
-                        <TextBlock Grid.Row="1" Grid.Column="0" Text="ADU scale" Foreground="#cccccc" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="ADU scale" Foreground="#cccccc" VerticalAlignment="Center"
+                                   ToolTip.Tip="Bit-shift divisor for sensors that pack a lower-bit ADC into a wider file (12-bit in 16-bit = 16). Use 1 for native 16-bit sensors."/>
                         <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding AduScaleText}"/>
-                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Full well (e-)" Foreground="#cccccc" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Full well (e-)" Foreground="#cccccc" VerticalAlignment="Center"
+                                   ToolTip.Tip="Per-pixel saturation ceiling in electrons. Leave blank to auto-derive; a hand-typed value overrides the derivation."/>
                         <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding FullWellText}"/>
-                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Target electrons" Foreground="#cccccc" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Target electrons" Foreground="#cccccc" VerticalAlignment="Center"
+                                   ToolTip.Tip="Desired total electrons summed over the aperture, for your precision goal. 100,000 gives ~3.4 mmag. Same for any camera."/>
                         <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding TargetElectronsText}"/>
                     </Grid>
 
@@ -234,7 +293,8 @@
                         <TextBlock Grid.Row="10" Grid.Column="1" Text="{Binding ApertureRaDecText}" Foreground="White" FontWeight="Bold" TextWrapping="Wrap"/>
                         <TextBlock Grid.Row="11" Grid.Column="0" Text="WCS" Foreground="#cccccc"/>
                         <TextBlock Grid.Row="11" Grid.Column="1" Text="{Binding WcsStatusText}" Foreground="White" FontWeight="Bold" TextWrapping="Wrap"/>
-                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Aperture pixels" Foreground="#cccccc"/>
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Aperture pixels" Foreground="#cccccc"
+                                   ToolTip.Tip="Effective aperture area using fractional-pixel overlap, so it can be non-integer."/>
                         <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding ApertureCountText}" Foreground="White" FontWeight="Bold"/>
                         <TextBlock Grid.Row="2" Grid.Column="0" Text="Sky median/px" Foreground="#cccccc"/>
                         <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding SkyMedianText}" Foreground="White" FontWeight="Bold"/>
@@ -250,11 +310,22 @@
                         <TextBlock Grid.Row="6" Grid.Column="1" Text="{Binding FullWellSourceText}" Foreground="White" FontWeight="Bold" TextWrapping="Wrap"/>
                         <TextBlock Grid.Row="7" Grid.Column="0" Text="Colour filter" Foreground="#cccccc"/>
                         <TextBlock Grid.Row="7" Grid.Column="1" Text="{Binding ColorFilterText}" Foreground="White" FontWeight="Bold" TextWrapping="Wrap"/>
-                        <TextBlock Grid.Row="8" Grid.Column="0" Text="Total electrons" Foreground="#cccccc"/>
+                        <TextBlock Grid.Row="8" Grid.Column="0" Text="Total electrons" Foreground="#cccccc"
+                                   ToolTip.Tip="Total electrons summed over the whole aperture (not per-pixel, and not capped by Full well)."/>
                         <TextBlock Grid.Row="8" Grid.Column="1" Text="{Binding TotalElectronsText}" Foreground="White" FontWeight="Bold"/>
                     </Grid>
 
-                    <TextBlock Text="Exposure Meter" FontWeight="Bold" Foreground="#66aaff" Margin="0,10,0,2"/>
+                    <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,10,0,2">
+                        <TextBlock Text="Exposure Meter" FontWeight="Bold" Foreground="#66aaff" VerticalAlignment="Center"/>
+                        <Button Classes="help" Content="?" ToolTip.Tip="About the Exposure Meter">
+                            <Button.Flyout>
+                                <Flyout>
+                                    <TextBlock MaxWidth="340" TextWrapping="Wrap"
+                                               Text="Rates the exposure for the measured star: GOOD, LOW SIGNAL, EXCESS SIGNAL, TOO FAINT, or NEAR SATURATION -- with a plain-language recommendation and a suggested new exposure time when the header carries EXPTIME/EXPOSURE."/>
+                                </Flyout>
+                            </Button.Flyout>
+                        </Button>
+                    </StackPanel>
                     <TextBlock Text="{Binding MeterStateText}" Foreground="{Binding MeterColor}"
                                FontWeight="Bold" FontSize="13" TextWrapping="Wrap"/>
                     <TextBlock Text="{Binding MeterRecommendationText}" Foreground="#dddddd" TextWrapping="Wrap" Margin="0,3,0,0"/>

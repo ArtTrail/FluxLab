@@ -86,6 +86,25 @@
         <Style Selector="Button.link:pointerover">
             <Setter Property="Foreground" Value="{StaticResource BrushBtnHov}"/>
         </Style>
+        <!-- Small round "?" help button: click opens its Flyout with the explanatory text. -->
+        <Style Selector="Button.help">
+            <Setter Property="Width" Value="18"/>
+            <Setter Property="Height" Value="18"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="CornerRadius" Value="9"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Background" Value="#2c3350"/>
+            <Setter Property="Foreground" Value="#88bbff"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style Selector="Button.help:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#3a4570"/>
+        </Style>
+
         <Style Selector="Button.fab">
             <Setter Property="Background" Value="{StaticResource BrushBtn}"/>
             <Setter Property="Foreground" Value="{StaticResource BrushFg}"/>
