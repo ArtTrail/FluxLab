@@ -613,6 +613,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private static readonly IBrush BarGreen = new SolidColorBrush(Color.Parse("#3fae5a"));
     private static readonly IBrush BarAmber = new SolidColorBrush(Color.Parse("#d9a520"));
     private static readonly IBrush BarRed   = new SolidColorBrush(Color.Parse("#d0503f"));
+    private static readonly IBrush BarBlue  = new SolidColorBrush(Color.Parse("#4a90d9"));
 
     /// <summary>Opens a single file fresh -- resets the aperture and sequence state, then
     /// auto-stretches. Use LoadDirectory to open a folder as a steppable sequence instead.</summary>
@@ -1266,11 +1267,22 @@ public partial class MainWindowViewModel : ViewModelBase
         MeterRecommendationText = m.Recommendation;
         MeterColor = new SolidColorBrush(StateColor(m.State));
 
-        // Saturation bar: peak vs full well.
+        // Bar colours reflect exposure QUALITY, not just the raw fill level, so a TOO FAINT frame
+        // doesn't show a reassuring green saturation bar (its peak is low, but that's underexposure,
+        // not a well-tuned frame). Both bars key off the meter's overall verdict.
+        //   Saturation: red saturating (>=85) / amber approaching (70-85) / blue underexposed (too
+        //   faint -- headroom, but not by design) / green healthy.
+        //   Signal: red too faint / amber low (<0.7x) / blue excess (>3x) / green good.
+        var state = m.State;
+
         if (m.SaturationPercent is double sat)
         {
             SatBarValue = Math.Clamp(sat, 0, 100);
-            SatBarBrush = sat >= ExposureMeter.SaturationWarnPct ? BarRed : sat >= 70 ? BarAmber : BarGreen;
+            SatBarBrush =
+                sat >= ExposureMeter.SaturationWarnPct ? BarRed :
+                sat >= 70 ? BarAmber :
+                state == ExposureMeterState.TooFaint ? BarBlue :
+                BarGreen;
             SatBarLabel = $"{sat:F0}% {m.SaturationBasis}";
         }
         else { SatBarValue = 0; SatBarBrush = Brushes.Gray; SatBarLabel = "— (set gain)"; }
@@ -1280,7 +1292,11 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             double pct = el / _profile.TargetElectrons * 100.0;
             SignalBarValue = Math.Clamp(pct, 0, 100);
-            SignalBarBrush = pct < ExposureMeter.TargetLowFrac * 100.0 ? BarAmber : BarGreen;
+            SignalBarBrush =
+                state == ExposureMeterState.TooFaint ? BarRed :
+                el > ExposureMeter.TargetHighMult * _profile.TargetElectrons ? BarBlue :
+                pct < ExposureMeter.TargetLowFrac * 100.0 ? BarAmber :
+                BarGreen;
             SignalBarLabel = $"{el / _profile.TargetElectrons:F2}x target";
         }
         else { SignalBarValue = 0; SignalBarBrush = Brushes.Gray; SignalBarLabel = "— (set gain)"; }

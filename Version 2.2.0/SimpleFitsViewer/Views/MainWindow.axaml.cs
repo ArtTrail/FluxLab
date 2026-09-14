@@ -77,7 +77,12 @@ public partial class MainWindow : Window
             var path = item.TryGetLocalPath();
             if (!string.IsNullOrEmpty(path)) paths.Add(path);
         }
-        if (paths.Count > 0) vm.LoadDropped(paths);
+        if (paths.Count > 0)
+        {
+            vm.LoadDropped(paths);
+            FitToWindow();          // same as the Open buttons -- open a dropped image fit to the pane
+            UpdateHistogramLines();
+        }
     }
 #pragma warning restore CS0618
 
