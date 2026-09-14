@@ -25,6 +25,8 @@ public static class RevisionHistoryData
             "Fixed: a manually typed Full well could get stuck -- clearing the field left it blank rather than returning to the auto-derived value, and there was no way to un-set a manual value. Clearing the Full well field now immediately re-derives it for the current frame.",
             "Changed: a hand-typed Full well above the ADC-limited ceiling (physically unreachable at that gain and ADU scale, which would understate saturation) is now capped to the ceiling, with a note explaining why and how to reset. A value below the ceiling is a legitimate pixel-limited well and is kept as entered.",
             "Changed: the aperture and sky-annulus rings are thicker, recoloured (a bluer middle ring and a redder outer ring) and now pulse with a soft glow, so they are much easier to spot when the image is zoomed out.",
+            "Changed: the exposure meter now flags TOO FAINT below a signal-to-noise of about 15 (was 10). AAVSO's CCD/CMOS photometry guidance calls SNR 10-20 'marginal' and below 10 'poor', so the warning now appears while you are still in the marginal band rather than only once the measurement is already poor.",
+            "New: [?] help buttons in the Results panel explaining the Gain, ADU scale and Full well 'source' rows -- how each value is auto-detected from the header and pixel data but should be confirmed, and how binning changes ADU scale and full well. The User Guide's 'Gain, ADU scale, Full well & binning' section expands on all of it.",
             "Layout: a little more breathing room between the right-hand panel's controls and its scrollbar.",
         }),
 

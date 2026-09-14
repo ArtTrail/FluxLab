@@ -351,7 +351,17 @@
                         <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding TargetElectronsText}"/>
                     </Grid>
 
-                    <TextBlock Text="Results" FontWeight="Bold" Foreground="#66aaff" Margin="0,6,0,2"/>
+                    <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,6,0,2">
+                        <TextBlock Text="Results" FontWeight="Bold" Foreground="#66aaff" VerticalAlignment="Center"/>
+                        <Button Classes="help" Content="?" ToolTip.Tip="About the Results, especially the source rows">
+                            <Button.Flyout>
+                                <Flyout>
+                                    <TextBlock MaxWidth="360" TextWrapping="Wrap"
+                                               Text="The rows ending in 'source' tell you where each measurement setting came from. FluxLab auto-detects Gain, ADU scale and Full well from the FITS header and the pixel data -- but you should confirm they are right for your camera and binning before trusting the electron counts and saturation warning. Each source row has its own [?], and the User Guide's 'Gain, ADU scale, Full well &amp; binning' section explains it in full."/>
+                                </Flyout>
+                            </Button.Flyout>
+                        </Button>
+                    </StackPanel>
                     <Grid ColumnDefinitions="140,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="2">
                         <TextBlock Grid.Row="0" Grid.Column="0" Text="Center (X, Y)" Foreground="#cccccc"/>
                         <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding CenterText}" Foreground="White" FontWeight="Bold"/>
@@ -368,11 +378,41 @@
                         <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding SkySigmaText}" Foreground="White" FontWeight="Bold"/>
                         <TextBlock Grid.Row="4" Grid.Column="0" Text="Peak (ADU)" Foreground="#cccccc"/>
                         <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding PeakText}" Foreground="White" FontWeight="Bold"/>
-                        <TextBlock Grid.Row="5" Grid.Column="0" Text="Gain source" Foreground="#cccccc"/>
+                        <StackPanel Grid.Row="5" Grid.Column="0" Orientation="Horizontal" Spacing="4">
+                            <TextBlock Text="Gain source" Foreground="#cccccc" VerticalAlignment="Center"/>
+                            <Button Classes="help" Content="?" ToolTip.Tip="About Gain source">
+                                <Button.Flyout>
+                                    <Flyout>
+                                        <TextBlock MaxWidth="340" TextWrapping="Wrap"
+                                                   Text="Gain (e-/ADU) converts ADU into electrons. It auto-fills from the header's EGAIN keyword when present ('FITS header (EGAIN)'). 'carried over' means this file had no EGAIN, so the previous file's value is being reused -- confirm it matches the camera and gain setting that took this frame. You can type a value in Gain &amp; Scaling to override. Gain is a property of the sensor and gain setting, not the exposure."/>
+                                    </Flyout>
+                                </Button.Flyout>
+                            </Button>
+                        </StackPanel>
                         <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding GainSourceText}" Foreground="White" FontWeight="Bold" TextWrapping="Wrap"/>
-                        <TextBlock Grid.Row="9" Grid.Column="0" Text="ADU scale source" Foreground="#cccccc"/>
+                        <StackPanel Grid.Row="9" Grid.Column="0" Orientation="Horizontal" Spacing="4">
+                            <TextBlock Text="ADU scale source" Foreground="#cccccc" VerticalAlignment="Center"/>
+                            <Button Classes="help" Content="?" ToolTip.Tip="About ADU scale source">
+                                <Button.Flyout>
+                                    <Flyout>
+                                        <TextBlock MaxWidth="360" TextWrapping="Wrap"
+                                                   Text="ADU scale is a bit-shift divisor. Some cameras have a 12- or 14-bit ADC but store each pixel in a 16-bit file by left-shifting the value (x16 for 12-bit, x4 for 14-bit); dividing by that scale recovers the true ADU before converting to electrons -- skip it and the electron count is inflated by that factor. FluxLab auto-detects it as the largest power-of-two that divides all the pixel values. Binning matters: 2x2 binning that AVERAGES four pixels (e.g. NINA's default) divides the shift by 4, so a 12-bit sensor that reads x16 unbinned shows x4 at 2x2 -- that is correct, not a bug. 'auto-detected' is usually right, but confirm it; use 1 for a native 16-bit sensor."/>
+                                    </Flyout>
+                                </Button.Flyout>
+                            </Button>
+                        </StackPanel>
                         <TextBlock Grid.Row="9" Grid.Column="1" Text="{Binding AduScaleSourceText}" Foreground="White" FontWeight="Bold" TextWrapping="Wrap"/>
-                        <TextBlock Grid.Row="6" Grid.Column="0" Text="Full well source" Foreground="#cccccc"/>
+                        <StackPanel Grid.Row="6" Grid.Column="0" Orientation="Horizontal" Spacing="4">
+                            <TextBlock Text="Full well source" Foreground="#cccccc" VerticalAlignment="Center"/>
+                            <Button Classes="help" Content="?" ToolTip.Tip="About Full well source">
+                                <Button.Flyout>
+                                    <Flyout>
+                                        <TextBlock MaxWidth="360" TextWrapping="Wrap"
+                                                   Text="Full well is the per-pixel saturation ceiling in electrons -- what the meter compares the peak against. 'derived (ADC ceiling x gain)' means FluxLab computed it from BITPIX, ADU scale and gain: the largest signal the ADC can actually record at this gain and binning, which is what really saturates (a datasheet's physical full well is only reachable at the lowest gains, so it would understate saturation). 'manual entry' means you typed it -- clear the field to re-derive, and a hand value above the ADC ceiling is capped. Binning raises it: a 2x2 binned pixel holds about 4x the charge. Confirm it looks right for your camera and binning."/>
+                                    </Flyout>
+                                </Button.Flyout>
+                            </Button>
+                        </StackPanel>
                         <TextBlock Grid.Row="6" Grid.Column="1" Text="{Binding FullWellSourceText}" Foreground="White" FontWeight="Bold" TextWrapping="Wrap"/>
                         <TextBlock Grid.Row="7" Grid.Column="0" Text="Colour filter" Foreground="#cccccc"/>
                         <TextBlock Grid.Row="7" Grid.Column="1" Text="{Binding ColorFilterText}" Foreground="White" FontWeight="Bold" TextWrapping="Wrap"/>

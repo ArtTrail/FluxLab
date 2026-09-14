@@ -15,8 +15,10 @@ public static class ExposureMeter
     /// <summary>% of the ADC ceiling / full well considered "near saturation".</summary>
     public const double SaturationWarnPct = 85.0;
 
-    /// <summary>peak-above-sky / sky-sigma considered "too faint".</summary>
-    public const double LowSnrThreshold = 10.0;
+    /// <summary>peak-above-sky / sky-sigma considered "too faint". AAVSO's CCD/CMOS photometry
+    /// guidance calls SNR 10-20 "marginal" and below 10 "poor", so this sits inside the marginal
+    /// band rather than only firing once the star is already in the poor range.</summary>
+    public const double LowSnrThreshold = 15.0;
 
     /// <summary>Below this fraction of the target, exposure is judged too short for a good
     /// photon-noise floor.</summary>
