@@ -103,10 +103,10 @@
                             <Ellipse IsVisible="{Binding ApertureVisible}" Stroke="#33ff66" StrokeThickness="2"
                                      Canvas.Left="{Binding ApertureLeft}" Canvas.Top="{Binding ApertureTop}"
                                      Width="{Binding ApertureSize}" Height="{Binding ApertureSize}"/>
-                            <Ellipse IsVisible="{Binding ApertureVisible}" Stroke="#33ccff" StrokeThickness="1.5" StrokeDashArray="4,3"
+                            <Ellipse IsVisible="{Binding ApertureVisible}" Stroke="#2a7bff" StrokeThickness="1.9" StrokeDashArray="4,3"
                                      Canvas.Left="{Binding AnnulusInnerLeft}" Canvas.Top="{Binding AnnulusInnerTop}"
                                      Width="{Binding AnnulusInnerSize}" Height="{Binding AnnulusInnerSize}"/>
-                            <Ellipse IsVisible="{Binding ApertureVisible}" Stroke="#ff44cc" StrokeThickness="1.5" StrokeDashArray="4,3"
+                            <Ellipse IsVisible="{Binding ApertureVisible}" Stroke="#ff3344" StrokeThickness="1.9" StrokeDashArray="4,3"
                                      Canvas.Left="{Binding AnnulusOuterLeft}" Canvas.Top="{Binding AnnulusOuterTop}"
                                      Width="{Binding AnnulusOuterSize}" Height="{Binding AnnulusOuterSize}"/>
                         </Canvas>
@@ -174,7 +174,7 @@
         </Grid>
 
         <!-- Aperture Photometry panel -->
-        <Border Grid.Column="1" Background="#252535" Padding="10">
+        <Border Grid.Column="1" Background="#252535" Padding="10" Margin="0,0,8,0">
             <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <StackPanel Spacing="3">
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="6" Margin="0,0,0,2">
