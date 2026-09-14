@@ -12,6 +12,6 @@ namespace SimpleFitsViewer;
 public static class AppVersion
 {
     public const string Name = "FluxLab";
-    public const string Version = "2.2.0";
+    public const string Version = "2.2.1";
     public const string Tagline = "Aperture photometry & exposure metering for FITS images";
 }

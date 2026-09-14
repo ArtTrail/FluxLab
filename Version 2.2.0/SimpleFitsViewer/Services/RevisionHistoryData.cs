@@ -19,6 +19,15 @@ public static class RevisionHistoryData
 {
     public static IReadOnlyList<RevisionEntry> All { get; } = new[]
     {
+        new RevisionEntry("2.2.1", "2026-09-14", new[]
+        {
+            "Fixed: on a PC set to Windows Light mode, most button labels rendered as near-black text on FluxLab's dark panels and were almost unreadable. The app now always uses its own dark theme, regardless of the Windows light/dark setting.",
+            "Fixed: a manually typed Full well could get stuck -- clearing the field left it blank rather than returning to the auto-derived value, and there was no way to un-set a manual value. Clearing the Full well field now immediately re-derives it for the current frame.",
+            "Changed: a hand-typed Full well above the ADC-limited ceiling (physically unreachable at that gain and ADU scale, which would understate saturation) is now capped to the ceiling, with a note explaining why and how to reset. A value below the ceiling is a legitimate pixel-limited well and is kept as entered.",
+            "Changed: the aperture and sky-annulus rings are thicker, recoloured (a bluer middle ring and a redder outer ring) and now pulse with a soft glow, so they are much easier to spot when the image is zoomed out.",
+            "Layout: a little more breathing room between the right-hand panel's controls and its scrollbar.",
+        }),
+
         new RevisionEntry("2.2.0", "2026-09-12", new[]
         {
             "Renamed: the app is now FluxLab (was Simple FITS Viewer). Saved camera profiles are unaffected -- they still live in the same place and carry over automatically.",
