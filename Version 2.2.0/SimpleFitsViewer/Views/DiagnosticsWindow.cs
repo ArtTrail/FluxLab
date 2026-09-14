@@ -2,9 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
+using Avalonia.Controls.Templates;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Platform.Storage;
+using Avalonia.Styling;
 using SimpleFitsViewer.Services;
 
 namespace SimpleFitsViewer.Views;
@@ -20,15 +23,29 @@ public class DiagnosticsWindow : Window
         Height = 520;
         Background = new SolidColorBrush(Color.Parse("#1e1e2e"));
 
+        var entryFg = new SolidColorBrush(Color.Parse("#d8d8f0"));
+        var entryFont = new FontFamily("Consolas,Menlo,monospace");
         var listBox = new ListBox
         {
             ItemsSource = DiagnosticsLog.Entries,
             Background = new SolidColorBrush(Color.Parse("#141420")),
-            Foreground = new SolidColorBrush(Color.Parse("#d8d8f0")),
-            FontFamily = new FontFamily("Consolas,Menlo,monospace"),
-            FontSize = 12,
             Margin = new Avalonia.Thickness(12),
+            ItemTemplate = new FuncDataTemplate<string>((text, _) => new TextBlock
+            {
+                Text = text,
+                TextWrapping = TextWrapping.Wrap,
+                Foreground = entryFg,
+                FontFamily = entryFont,
+                FontSize = 12,
+            }, supportsRecycling: true),
         };
+        // Forbid horizontal scrolling and stretch each row to the list width, so the wrapping
+        // TextBlock wraps at the window width instead of running off the right edge.
+        ScrollViewer.SetHorizontalScrollBarVisibility(listBox, ScrollBarVisibility.Disabled);
+        listBox.Styles.Add(new Style(x => x.OfType<ListBoxItem>())
+        {
+            Setters = { new Setter(ContentControl.HorizontalContentAlignmentProperty, HorizontalAlignment.Stretch) },
+        });
 
         var saveButton = new Button { Content = "Save Log", Padding = new Avalonia.Thickness(12, 4) };
         saveButton.Click += async (_, _) => await SaveLogAsync();
