@@ -439,8 +439,18 @@
                                FontWeight="Bold" FontSize="13" TextWrapping="Wrap"/>
 
                     <!-- Saturation bar: peak vs full well; static tick at the 85% warn line. -->
-                    <Grid ColumnDefinitions="64,*,Auto" Margin="0,4,0,0">
-                        <TextBlock Grid.Column="0" Text="Saturation" Foreground="#cccccc" FontSize="11" VerticalAlignment="Center"/>
+                    <Grid ColumnDefinitions="86,*,Auto" Margin="0,4,0,0">
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                            <TextBlock Text="Saturation" Foreground="#cccccc" FontSize="11" VerticalAlignment="Center"/>
+                            <Button Classes="help" Content="?" ToolTip.Tip="How to read the Saturation meter">
+                                <Button.Flyout>
+                                    <Flyout>
+                                        <TextBlock MaxWidth="340" TextWrapping="Wrap"
+                                                   Text="How full the brightest pixel is. The bar shows the peak pixel as a percentage of Full well (or, if full well is unknown, the ADC ceiling). The tick mark is the 85% near-saturation line -- keep the bar left of it. Green = safe headroom; amber = getting close; red = at or past 85%, so highlights may be clipping and you should shorten the exposure. Blue means the star is too faint for saturation to be a concern. The number on the right is the exact percentage."/>
+                                    </Flyout>
+                                </Button.Flyout>
+                            </Button>
+                        </StackPanel>
                         <Grid Grid.Column="1" VerticalAlignment="Center">
                             <ProgressBar Minimum="0" Maximum="100" Value="{Binding SatBarValue}"
                                          Foreground="{Binding SatBarBrush}" Background="#1e1e30" Height="14"/>
@@ -453,8 +463,18 @@
                     </Grid>
 
                     <!-- Signal bar: electrons vs target; static tick at 0.7x target (70%). -->
-                    <Grid ColumnDefinitions="64,*,Auto" Margin="0,3,0,0">
-                        <TextBlock Grid.Column="0" Text="Signal" Foreground="#cccccc" FontSize="11" VerticalAlignment="Center"/>
+                    <Grid ColumnDefinitions="86,*,Auto" Margin="0,3,0,0">
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                            <TextBlock Text="Signal" Foreground="#cccccc" FontSize="11" VerticalAlignment="Center"/>
+                            <Button Classes="help" Content="?" ToolTip.Tip="How to read the Signal meter">
+                                <Button.Flyout>
+                                    <Flyout>
+                                        <TextBlock MaxWidth="340" TextWrapping="Wrap"
+                                                   Text="How much signal you have collected versus your goal. The bar shows total electrons in the aperture as a percentage of Target electrons (default 100,000); the number on the right is the current multiple of target. The tick mark is 0.7x target. Green = in the good band; amber = below 0.7x, so expose longer; blue = past 3x target, where extra signal mainly costs cadence; red = the star is too faint. Aim to reach the tick without running far past it."/>
+                                    </Flyout>
+                                </Button.Flyout>
+                            </Button>
+                        </StackPanel>
                         <Grid Grid.Column="1" VerticalAlignment="Center">
                             <ProgressBar Minimum="0" Maximum="100" Value="{Binding SignalBarValue}"
                                          Foreground="{Binding SignalBarBrush}" Background="#1e1e30" Height="14"/>
