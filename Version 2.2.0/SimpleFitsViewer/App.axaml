@@ -2,8 +2,12 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="SimpleFitsViewer.App"
              xmlns:local="using:SimpleFitsViewer"
-             RequestedThemeVariant="Default">
-             <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
+             RequestedThemeVariant="Dark">
+             <!-- Pinned to Dark. The whole UI is painted on a hardcoded dark ground (#1e1e2e for the
+                  main window, Nord #2e3440 for the ecosystem surfaces), so it must NOT follow the OS
+                  theme: on a machine set to Windows Light mode, "Default" made FluentTheme give
+                  buttons dark text, which was near-invisible/black on our dark background (reported
+                  by a user running Windows in light mode). "Light"/"Default" are the other options. -->
 
     <Application.DataTemplates>
         <local:ViewLocator/>

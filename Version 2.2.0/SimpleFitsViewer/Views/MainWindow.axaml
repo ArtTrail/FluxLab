@@ -119,12 +119,12 @@
                                 <Ellipse.Effect><DropShadowEffect Color="#33ff66" BlurRadius="8" OffsetX="0" OffsetY="0"/></Ellipse.Effect>
                             </Ellipse>
 
-                            <Ellipse IsVisible="{Binding ApertureVisible}" Stroke="#2a7bff" StrokeThickness="2.4"
+                            <Ellipse IsVisible="{Binding ApertureVisible}" Stroke="#2a7bff" StrokeThickness="2.4" StrokeDashArray="4,3"
                                      Canvas.Left="{Binding AnnulusInnerLeft}" Canvas.Top="{Binding AnnulusInnerTop}"
                                      Width="{Binding AnnulusInnerSize}" Height="{Binding AnnulusInnerSize}">
                                 <Ellipse.Effect><DropShadowEffect Color="#2a7bff" BlurRadius="11" OffsetX="0" OffsetY="0"/></Ellipse.Effect>
                             </Ellipse>
-                            <Ellipse IsVisible="{Binding ApertureVisible}" Stroke="#2a7bff" StrokeThickness="2.4"
+                            <Ellipse IsVisible="{Binding ApertureVisible}" Stroke="#2a7bff" StrokeThickness="2.4" StrokeDashArray="4,3"
                                      Canvas.Left="{Binding AnnulusInnerLeft}" Canvas.Top="{Binding AnnulusInnerTop}"
                                      Width="{Binding AnnulusInnerSize}" Height="{Binding AnnulusInnerSize}">
                                 <Ellipse.Effect><DropShadowEffect Color="#2a7bff" BlurRadius="11" OffsetX="0" OffsetY="0"/></Ellipse.Effect>
@@ -135,12 +135,12 @@
                                 <Ellipse.Effect><DropShadowEffect Color="#2a7bff" BlurRadius="11" OffsetX="0" OffsetY="0"/></Ellipse.Effect>
                             </Ellipse>
 
-                            <Ellipse IsVisible="{Binding ApertureVisible}" Stroke="#ff3344" StrokeThickness="2.4"
+                            <Ellipse IsVisible="{Binding ApertureVisible}" Stroke="#ff3344" StrokeThickness="2.4" StrokeDashArray="4,3"
                                      Canvas.Left="{Binding AnnulusOuterLeft}" Canvas.Top="{Binding AnnulusOuterTop}"
                                      Width="{Binding AnnulusOuterSize}" Height="{Binding AnnulusOuterSize}">
                                 <Ellipse.Effect><DropShadowEffect Color="#ff3344" BlurRadius="11" OffsetX="0" OffsetY="0"/></Ellipse.Effect>
                             </Ellipse>
-                            <Ellipse IsVisible="{Binding ApertureVisible}" Stroke="#ff3344" StrokeThickness="2.4"
+                            <Ellipse IsVisible="{Binding ApertureVisible}" Stroke="#ff3344" StrokeThickness="2.4" StrokeDashArray="4,3"
                                      Canvas.Left="{Binding AnnulusOuterLeft}" Canvas.Top="{Binding AnnulusOuterTop}"
                                      Width="{Binding AnnulusOuterSize}" Height="{Binding AnnulusOuterSize}">
                                 <Ellipse.Effect><DropShadowEffect Color="#ff3344" BlurRadius="11" OffsetX="0" OffsetY="0"/></Ellipse.Effect>
