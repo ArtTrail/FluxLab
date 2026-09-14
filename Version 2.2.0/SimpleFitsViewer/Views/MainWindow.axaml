@@ -294,7 +294,7 @@
                     </Grid>
 
                     <TextBlock Text="Results" FontWeight="Bold" Foreground="#66aaff" Margin="0,6,0,2"/>
-                    <Grid ColumnDefinitions="140,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="2">
+                    <Grid ColumnDefinitions="140,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="2">
                         <TextBlock Grid.Row="0" Grid.Column="0" Text="Center (X, Y)" Foreground="#cccccc"/>
                         <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding CenterText}" Foreground="White" FontWeight="Bold"/>
                         <TextBlock Grid.Row="10" Grid.Column="0" Text="Center (RA, Dec)" Foreground="#cccccc"/>
@@ -321,6 +321,9 @@
                         <TextBlock Grid.Row="8" Grid.Column="0" Text="Total electrons" Foreground="#cccccc"
                                    ToolTip.Tip="Total electrons summed over the whole aperture (not per-pixel, and not capped by Full well)."/>
                         <TextBlock Grid.Row="8" Grid.Column="1" Text="{Binding TotalElectronsText}" Foreground="White" FontWeight="Bold"/>
+                        <TextBlock Grid.Row="12" Grid.Column="0" Text="Precision" Foreground="#cccccc"
+                                   ToolTip.Tip="Expected photometric precision from the aperture SNR (which includes read noise via the measured background). mmag = 1.0857/SNR; ppt = parts per thousand of flux."/>
+                        <TextBlock Grid.Row="12" Grid.Column="1" Text="{Binding PrecisionText}" Foreground="White" FontWeight="Bold" TextWrapping="Wrap"/>
                     </Grid>
 
                     <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,6,0,2">

@@ -592,6 +592,7 @@ public partial class MainWindowViewModel : ViewModelBase
     }
 
     [ObservableProperty] private string _totalElectronsText = "—";
+    [ObservableProperty] private string _precisionText = "—";
 
     // Exposure Meter
     [ObservableProperty] private string _meterStateText = "—";
@@ -1035,7 +1036,7 @@ public partial class MainWindowViewModel : ViewModelBase
         string radec = _wcs is null ? "" : $" [{ApertureRaDecText}]";
         DiagnosticsLog.Log($"[Photometry] {trigger}: centre ({c.X:F1}, {c.Y:F1}){radec} "
                          + $"r={_apertureRadius:F1} ap-px={ApertureCountText} sky={SkyMedianText} "
-                         + $"peak={PeakText} e-={TotalElectronsText} meter={MeterStateText}");
+                         + $"peak={PeakText} e-={TotalElectronsText} precision={PrecisionText} meter={MeterStateText}");
     }
 
     /// <summary>
@@ -1242,6 +1243,9 @@ public partial class MainWindowViewModel : ViewModelBase
         SkySigmaText = result.Aperture.SkySigma.ToString("F3");
         PeakText = result.Aperture.Peak.ToString("F2");
         TotalElectronsText = result.Electrons is double e ? e.ToString("F1") : "— (set gain)";
+        PrecisionText = result is { PrecisionMmag: double mmag, PrecisionPpt: double ppt, Snr: double snr }
+            ? $"{mmag:F1} mmag  ·  {ppt:F2} ppt  (SNR {snr:F0})"
+            : "— (set gain)";
 
         var m = result.Meter;
         MeterStateText = string.IsNullOrEmpty(m.Detail) ? StateLabel(m.State) : $"{StateLabel(m.State)}  ({m.Detail})";
@@ -1269,6 +1273,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private void ClearResults()
     {
         CenterText = ApertureCountText = SkyMedianText = SkySigmaText = PeakText = TotalElectronsText = "—";
+        PrecisionText = "—";
         ApertureRaDecText = "—";
         MeterStateText = "—";
         MeterRecommendationText = "";

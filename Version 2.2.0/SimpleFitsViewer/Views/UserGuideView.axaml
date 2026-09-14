@@ -105,6 +105,7 @@
                     <!-- 9 -->
                     <TextBlock x:Name="Section9" Classes="h2" Text="9. Exposure meter" Margin="0,16,0,0"/>
                     <TextBlock TextWrapping="Wrap" Text="The Exposure Meter reports GOOD / LOW SIGNAL / EXCESS SIGNAL / TOO FAINT / NEAR SATURATION, with a plain-language recommendation and a suggested new exposure time when the FITS header has EXPTIME or EXPOSURE."/>
+                    <TextBlock TextWrapping="Wrap" Text="The Results panel also shows the expected photometric Precision for the current aperture, as both mmag and ppt (parts per thousand of flux), from the aperture signal-to-noise ratio: SNR = S / sqrt(S + n x sky-sigma^2), with precision = 1.0857/SNR magnitudes. Because it uses the MEASURED per-pixel background scatter, the SNR already includes read noise, sky shot noise and dark noise -- no separate read-noise entry is needed. Precision needs the gain to be set (Poisson noise is in electrons)."/>
 
                     <!-- 10 -->
                     <TextBlock x:Name="Section10" Classes="h2" Text="10. Sequence playback (Open Directory)" Margin="0,16,0,0"/>

@@ -1,3 +1,4 @@
+using System;
 using FitsPhotometry.Core.Camera;
 using FitsPhotometry.Core.Fits;
 using FitsPhotometry.Core.Meter;
@@ -8,7 +9,8 @@ namespace FitsPhotometry.Core;
 /// <summary>Full result of one photometry analysis: the raw aperture measurement, its electron
 /// conversion, and the resulting Exposure Meter evaluation.</summary>
 public sealed record PhotometryResult(
-    ApertureResult Aperture, double? Electrons, double? PeakElectrons, ExposureMeterResult Meter);
+    ApertureResult Aperture, double? Electrons, double? PeakElectrons, ExposureMeterResult Meter,
+    double? Snr = null, double? PrecisionMmag = null, double? PrecisionPpt = null);
 
 /// <summary>
 /// Single entry point for the shared photometry/exposure-meter logic -- deliberately stateless
@@ -38,6 +40,28 @@ public static class PhotometryEngine
 
         var meter = ExposureMeter.Evaluate(apResult, peakElectrons, electrons, header, profile);
 
-        return new PhotometryResult(apResult, electrons, peakElectrons, meter);
+        // Aperture SNR and the photometric precision it implies. Uses the MEASURED per-pixel
+        // background sigma (apResult.SkySigma), which already contains read noise, sky shot noise,
+        // and dark noise -- so this is a real, read-noise-inclusive SNR without a separate field
+        // (adding read noise on top would double-count it). Poisson shot noise needs the signal in
+        // electrons, so precision is only defined when gain is known.
+        //   SNR = S / sqrt(S + n * skySigma_e^2)
+        //   precision (mag)  = 1.0857 / SNR  ->  x1000 for mmag
+        //   precision (frac) = 1 / SNR       ->  x1000 for ppt (parts per thousand)
+        double? snr = null, precMmag = null, precPpt = null;
+        if (electrons is double s && s > 0 && profile.GainEPerAdu is double g3)
+        {
+            double n = apResult.NAperturePixels;
+            double skySigmaE = apResult.SkySigma / divisor * g3;
+            double noise = Math.Sqrt(s + n * skySigmaE * skySigmaE);
+            if (noise > 0)
+            {
+                snr = s / noise;
+                precMmag = 1085.7 / snr;
+                precPpt = 1000.0 / snr;
+            }
+        }
+
+        return new PhotometryResult(apResult, electrons, peakElectrons, meter, snr, precMmag, precPpt);
     }
 }
