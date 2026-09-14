@@ -7,6 +7,7 @@ using Avalonia.Controls.Shapes;
 using Avalonia.Input;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
+using SimpleFitsViewer.Services;
 using SimpleFitsViewer.ViewModels;
 
 namespace SimpleFitsViewer.Views;
@@ -133,7 +134,11 @@ public partial class MainWindow : Window
         }
     }
 
-    private void OnFitClicked(object? sender, Avalonia.Interactivity.RoutedEventArgs e) => FitToWindow();
+    private void OnFitClicked(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        DiagnosticsLog.Log("[UI] Fit to window.");
+        FitToWindow();
+    }
 
     private void FitToWindow()
     {
@@ -203,10 +208,14 @@ public partial class MainWindow : Window
     {
         if (!_leftButtonDown) return;
 
-        if (!_isDraggingAperture && DataContext is MainWindowViewModel vm)
+        if (DataContext is MainWindowViewModel vm)
         {
-            // No real drag happened -- treat as a plain click: re-centroid at the press point.
-            vm.OnImageClicked(_leftPressImagePos.X, _leftPressImagePos.Y);
+            if (!_isDraggingAperture)
+                // No real drag happened -- treat as a plain click: re-centroid at the press point.
+                vm.OnImageClicked(_leftPressImagePos.X, _leftPressImagePos.Y);
+            else
+                // A drag just finished -- log the committed position once (not per drag tick).
+                vm.LogMeasurement("drag moved");
         }
         _leftButtonDown = false;
         _leftDragCandidate = false;
@@ -332,31 +341,49 @@ public partial class MainWindow : Window
         if (vm.CurrentFilePath is null)
         {
             vm.InstructionText = "Open a FITS file first, then Tools > FITS Header.";
+            DiagnosticsLog.Log("[UI] Tools > FITS Header (no file open).");
             return;
         }
+        DiagnosticsLog.Log("[UI] Opened FITS Header editor.");
         var headerVm = new ViewModels.HeaderWindowViewModel(vm.CurrentHeader, vm.CurrentFilePath);
         new HeaderWindow { DataContext = headerVm }.Show();
     }
 
     private void OnDiagnosticsClicked(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
-        => new DiagnosticsWindow().Show();
+    {
+        DiagnosticsLog.Log("[UI] Opened Diagnostics.");
+        new DiagnosticsWindow().Show();
+    }
 
     private void OnPlateSolverSettingsClicked(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
-        => new PlateSolverSettingsWindow { WindowStartupLocation = WindowStartupLocation.CenterOwner }.Show(this);
+    {
+        DiagnosticsLog.Log("[UI] Opened Plate Solver settings.");
+        new PlateSolverSettingsWindow { WindowStartupLocation = WindowStartupLocation.CenterOwner }.Show(this);
+    }
 
     // Help popups mirror the siblings: a bare Window wrapping a UserControl, centered on the owner,
     // sized to the same dimensions StarFix/VariLab/TransitLab use for each.
     private void OnUserGuideClicked(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
-        => ShowInfoWindow("User Guide", new UserGuideView(), 920, 820, resizable: true);
+    {
+        DiagnosticsLog.Log("[UI] Opened User Guide.");
+        ShowInfoWindow("User Guide", new UserGuideView(), 920, 820, resizable: true);
+    }
 
     private void OnRevisionHistoryClicked(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
-        => ShowInfoWindow("Revision History", new RevisionHistoryView(), 800, 640, resizable: true);
+    {
+        DiagnosticsLog.Log("[UI] Opened Revision History.");
+        ShowInfoWindow("Revision History", new RevisionHistoryView(), 800, 640, resizable: true);
+    }
 
     private void OnAboutClicked(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
-        => ShowInfoWindow("About FluxLab", new AboutView(), 520, 640, resizable: false);
+    {
+        DiagnosticsLog.Log("[UI] Opened About.");
+        ShowInfoWindow("About FluxLab", new AboutView(), 520, 640, resizable: false);
+    }
 
     private void OnSubmitFeedbackClicked(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
+        DiagnosticsLog.Log("[UI] Opened Submit Feedback.");
         Window? win = null;
         var vm = new ViewModels.BugReportViewModel();
         vm.CloseCallback = () => win?.Close();

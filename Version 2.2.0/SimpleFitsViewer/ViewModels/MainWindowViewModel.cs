@@ -110,10 +110,12 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public MainWindowViewModel()
     {
+        DiagnosticsLog.Log($"[App] FluxLab v{AppVersion.Version} started.");
         MigrateLegacyProfiles();   // must run before either load below
         _profile = LoadProfile();
         _library = LoadLibrary();
         foreach (var p in _library) ProfileNames.Add(p.Name);
+        DiagnosticsLog.Log($"[App] Loaded {_library.Count} saved camera profile(s).");
         SyncProfileTextFromResolved();
         SyncGeometryTextFromCurrent();
     }
@@ -175,6 +177,8 @@ public partial class MainWindowViewModel : ViewModelBase
         SaveProfile();
         SaveAsNameText = p.Name;
         Recompute();
+        DiagnosticsLog.Log($"[UI] Loaded profile '{p.Name}': gain {GainText}, ADU scale {AduScaleText}, "
+                         + $"full well {FullWellText} ({FullWellSourceText}).");
     }
 
     [RelayCommand]
@@ -197,6 +201,8 @@ public partial class MainWindowViewModel : ViewModelBase
         }
         SaveLibrary();
         SelectedProfileName = name;
+        DiagnosticsLog.Log($"[UI] Saved profile '{name}' (gain {GainText}, ADU scale {AduScaleText}, "
+                         + $"full well {FullWellText}, target {TargetElectronsText}).");
     }
 
     [RelayCommand]
@@ -208,6 +214,7 @@ public partial class MainWindowViewModel : ViewModelBase
         ProfileNames.Remove(p.Name);
         SaveLibrary();
         SelectedProfileName = null;
+        DiagnosticsLog.Log($"[UI] Deleted profile '{p.Name}'.");
     }
 
     /// <summary>Gain/ADU-scale/Full-well/Target-electrons persisted across app restarts --
@@ -690,6 +697,7 @@ public partial class MainWindowViewModel : ViewModelBase
     /// so both behave identically once the file list is known.</summary>
     private void StartSequence(List<string> files)
     {
+        DiagnosticsLog.Log($"[File] Opened a {files.Count}-frame sequence.");
         StopPlayback();
         _sequenceFiles = files;
         _currentFrameIndex = 0;
@@ -718,7 +726,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
         RenderHistogram();
         RenderImage();
-        if (_apertureCenter is not null) Recompute();
+        if (_apertureCenter is not null) { Recompute(); LogMeasurement($"frame {index + 1}/{_sequenceFiles.Count}"); }
         SyncFrameSliderTo(index);
         UpdateFrameLabel();
     }
@@ -771,6 +779,9 @@ public partial class MainWindowViewModel : ViewModelBase
         SyncProfileTextFromResolved();
 
         FileNameText = System.IO.Path.GetFileName(path);
+        DiagnosticsLog.Log($"[File] Loaded {FileNameText} ({_width}x{_height}); WCS: {WcsStatusText}; "
+                         + $"gain {GainText} ({GainSourceText}), ADU scale {AduScaleText}, "
+                         + $"full well {FullWellText} ({FullWellSourceText}).");
         return true;
     }
 
@@ -1004,11 +1015,28 @@ public partial class MainWindowViewModel : ViewModelBase
         _suppressStretchRender = false;
         WhiteLevel = Math.Clamp((_zScaleHi - _stretchMin) / range, 0.0, 1.0);
         RenderImage();
+        DiagnosticsLog.Log($"[UI] Auto Stretch (ZScale) -> black {BlackLevel:F3}, white {WhiteLevel:F3}.");
     }
 
     /// <summary>Called by the view when the user clicks on the displayed image, in native
     /// image-pixel coordinates (0,0 = top-left).</summary>
-    public void OnImageClicked(double px, double py) => PlaceApertureAt(px, py);
+    public void OnImageClicked(double px, double py)
+    {
+        bool found = PlaceApertureAt(px, py);
+        LogMeasurement(found ? "click (centroided)" : "click (no star, recentred)");
+    }
+
+    /// <summary>Logs the current aperture + its measurement to the diagnostics log. Called on
+    /// discrete actions (a click, a drag release, a frame step) rather than on every drag tick, so
+    /// the log stays a readable activity trail instead of flooding.</summary>
+    public void LogMeasurement(string trigger)
+    {
+        if (_apertureCenter is not { } c) return;
+        string radec = _wcs is null ? "" : $" [{ApertureRaDecText}]";
+        DiagnosticsLog.Log($"[Photometry] {trigger}: centre ({c.X:F1}, {c.Y:F1}){radec} "
+                         + $"r={_apertureRadius:F1} ap-px={ApertureCountText} sky={SkyMedianText} "
+                         + $"peak={PeakText} e-={TotalElectronsText} meter={MeterStateText}");
+    }
 
     /// <summary>
     /// Centroids near (px, py), places and auto-sizes the aperture set there, and re-measures.
@@ -1091,13 +1119,13 @@ public partial class MainWindowViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void ZoomIn() => ZoomScale = Math.Min(ZoomScale * 1.25, 20.0);
+    private void ZoomIn() { ZoomScale = Math.Min(ZoomScale * 1.25, 20.0); DiagnosticsLog.Log($"[UI] Zoom In -> {ZoomScale:P0}."); }
 
     [RelayCommand]
-    private void ZoomOut() => ZoomScale = Math.Max(ZoomScale * 0.8, 0.02);
+    private void ZoomOut() { ZoomScale = Math.Max(ZoomScale * 0.8, 0.02); DiagnosticsLog.Log($"[UI] Zoom Out -> {ZoomScale:P0}."); }
 
     [RelayCommand]
-    private void ZoomOneToOne() => ZoomScale = 1.0;
+    private void ZoomOneToOne() { ZoomScale = 1.0; DiagnosticsLog.Log("[UI] Zoom 1:1."); }
 
     // Fine-adjustment step for the black/white level +/- buttons -- finer than a typical
     // slider-drag increment (1% of the robust [_stretchMin, _stretchMax] range per click).
@@ -1357,5 +1385,6 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         _apertureCenter = null;
         ClearResults();
+        DiagnosticsLog.Log("[UI] Clear Aperture.");
     }
 }
