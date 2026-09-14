@@ -47,8 +47,11 @@
                 <TextBlock Classes="body" TextWrapping="Wrap" HorizontalAlignment="Center" TextAlignment="Center"
                            Text="StarFix"/>
                 <TextBlock Classes="hint" TextWrapping="Wrap" HorizontalAlignment="Center" TextAlignment="Center"
-                           Margin="0,2,0,10"
-                           Text="Optional plate-solving engine FluxLab drives for the Plate Solve button&#x0a;github.com/ArtTrail/StarFix"/>
+                           Margin="0,2,0,0"
+                           Text="Optional plate-solving engine FluxLab drives for the Plate Solve button"/>
+                <Button Classes="link" Content="github.com/ArtTrail/StarFix" Click="OnLinkClick"
+                        Tag="https://github.com/ArtTrail/StarFix"
+                        HorizontalAlignment="Center" Margin="0,2,0,10"/>
 
                 <TextBlock Classes="body" TextWrapping="Wrap" HorizontalAlignment="Center" TextAlignment="Center"
                            Text="AAVSO VSX  ·  NASA Exoplanet Archive  ·  SIMBAD"/>
