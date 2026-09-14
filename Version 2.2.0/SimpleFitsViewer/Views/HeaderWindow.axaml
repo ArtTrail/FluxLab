@@ -28,7 +28,7 @@
                    Foreground="#6666aa" FontStyle="Italic" FontSize="11" Margin="0,4,0,0"/>
 
         <Grid Grid.Row="4" ColumnDefinitions="Auto,Auto,*,Auto" Margin="0,8,0,0">
-            <Button Grid.Column="0" Content="Add Keyword..." Click="OnAddKeywordClicked"
+            <Button Grid.Column="0" Content="Add Keyword" Click="OnAddKeywordClicked"
                     Background="#1a5080" Foreground="White" Padding="10,4" Margin="0,0,6,0"/>
             <Button Grid.Column="1" Content="Delete Keyword" Command="{Binding DeleteKeywordCommand}"
                     Background="#6a1a1a" Foreground="White" Padding="10,4"/>

@@ -93,7 +93,7 @@ public class PlateSolverSettingsWindow : Window
 
     private Control PathRow(TextBox box, bool browseFolder)
     {
-        var browse = new Button { Content = "Browse…", Margin = new Avalonia.Thickness(6, 0, 0, 0) };
+        var browse = new Button { Content = "Browse", Margin = new Avalonia.Thickness(6, 0, 0, 0) };
         browse.Click += async (_, _) => await BrowseInto(box, browseFolder);
         var grid = new Grid { ColumnDefinitions = new ColumnDefinitions("*,Auto") };
         Grid.SetColumn(box, 0);

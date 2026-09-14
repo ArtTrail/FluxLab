@@ -19,8 +19,8 @@
     <Grid RowDefinitions="Auto,Auto,*">
         <Menu Grid.Row="0">
             <MenuItem Header="_Tools">
-                <MenuItem Header="FITS Header..." Click="OnFitsHeaderClicked"/>
-                <MenuItem Header="Plate Solver..." Click="OnPlateSolverSettingsClicked"/>
+                <MenuItem Header="FITS Header" Click="OnFitsHeaderClicked"/>
+                <MenuItem Header="Plate Solver" Click="OnPlateSolverSettingsClicked"/>
                 <MenuItem Header="Diagnostics" Click="OnDiagnosticsClicked"/>
             </MenuItem>
             <MenuItem Header="_Help">
@@ -49,8 +49,8 @@
         <!-- Image area -->
         <Grid Grid.Column="0" RowDefinitions="Auto,Auto,*,Auto,Auto" Margin="8">
             <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="6" Margin="0,0,0,6">
-                <Button Content="Open FITS File..." Click="OnOpenClicked" Padding="12,6"/>
-                <Button Content="Open Directory..." Click="OnOpenDirectoryClicked" Padding="12,6"/>
+                <Button Content="Open FITS File" Click="OnOpenClicked" Padding="12,6"/>
+                <Button Content="Open Directory" Click="OnOpenDirectoryClicked" Padding="12,6"/>
                 <Button Content="Zoom In"  Command="{Binding ZoomInCommand}" Padding="10,6"/>
                 <Button Content="Zoom Out" Command="{Binding ZoomOutCommand}" Padding="10,6"/>
                 <Button Content="Fit" Click="OnFitClicked" Padding="10,6"/>

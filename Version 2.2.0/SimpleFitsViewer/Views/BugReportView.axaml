@@ -29,12 +29,12 @@
 
             <StackPanel Spacing="4">
                 <TextBlock Text="Summary  (optional)" FontWeight="SemiBold"/>
-                <TextBox Text="{Binding Summary}" Watermark="One-line summary…" IsEnabled="{Binding !IsSubmitted}"/>
+                <TextBox Text="{Binding Summary}" Watermark="One-line summary" IsEnabled="{Binding !IsSubmitted}"/>
             </StackPanel>
 
             <StackPanel Spacing="4">
                 <TextBlock Text="Description  *" FontWeight="SemiBold"/>
-                <TextBox Text="{Binding Description}" Watermark="Describe the issue or feature request…"
+                <TextBox Text="{Binding Description}" Watermark="Describe the issue or feature request"
                          AcceptsReturn="True" TextWrapping="Wrap" Height="120" IsEnabled="{Binding !IsSubmitted}"/>
             </StackPanel>
 

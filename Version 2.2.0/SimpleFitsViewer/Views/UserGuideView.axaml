@@ -27,7 +27,7 @@
                                 Padding="12,4" Margin="6,0,0,0"/>
                         <Button DockPanel.Dock="Right" Content="Find Next" Click="FindNext_Click"
                                 Padding="12,4" Margin="6,0,0,0"/>
-                        <TextBox x:Name="SearchBox" Watermark="Search guide…" KeyDown="SearchBox_KeyDown"/>
+                        <TextBox x:Name="SearchBox" Watermark="Search guide" KeyDown="SearchBox_KeyDown"/>
                     </DockPanel>
                 </Border>
             </StackPanel>

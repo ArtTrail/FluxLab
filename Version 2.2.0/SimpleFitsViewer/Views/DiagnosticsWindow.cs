@@ -30,7 +30,7 @@ public class DiagnosticsWindow : Window
             Margin = new Avalonia.Thickness(12),
         };
 
-        var saveButton = new Button { Content = "Save Log...", Padding = new Avalonia.Thickness(12, 4) };
+        var saveButton = new Button { Content = "Save Log", Padding = new Avalonia.Thickness(12, 4) };
         saveButton.Click += async (_, _) => await SaveLogAsync();
 
         var clearButton = new Button
