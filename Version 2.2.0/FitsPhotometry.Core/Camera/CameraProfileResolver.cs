@@ -111,16 +111,26 @@ public static class CameraProfileResolver
     /// the datasheet number there would understate saturation by ~3x. A stored value LOWER than
     /// the derived ceiling is kept, because then the pixel really does fill first.
     /// </summary>
-    public static void ResolveFullWell(CameraProfile profile, FitsHeader header)
+    /// <summary>
+    /// The largest full well (in electrons) the ADC can actually record at this frame's bit depth,
+    /// gain and ADU scale: (2^BITPIX - 1) / aduScale * gain. Electrons above this can never appear
+    /// in the data, so it is both the auto-derived full well and the hard cap on any manual value.
+    /// Returns null for float/calibrated frames (no BITPIX ceiling) or when gain is unknown.
+    /// </summary>
+    public static double? AdcLimitedFullWell(CameraProfile profile, FitsHeader header)
     {
         var bitpix = header.GetInt("BITPIX");
-        if (bitpix is null || bitpix <= 0) return;            // float/calibrated: no ADC ceiling
-        if (profile.GainEPerAdu is not double gain || gain <= 0) return;
+        if (bitpix is null || bitpix <= 0) return null;       // float/calibrated: no ADC ceiling
+        if (profile.GainEPerAdu is not double gain || gain <= 0) return null;
 
         double scale = profile.AduScale is > 0 ? profile.AduScale.Value : 1.0;
-        double adcCeiling = (Math.Pow(2, bitpix.Value) - 1) / scale;
-        double derived = adcCeiling * gain;
-        if (derived <= 0) return;
+        double derived = (Math.Pow(2, bitpix.Value) - 1) / scale * gain;
+        return derived > 0 ? derived : null;
+    }
+
+    public static void ResolveFullWell(CameraProfile profile, FitsHeader header)
+    {
+        if (AdcLimitedFullWell(profile, header) is not double derived) return;
 
         if (profile.FullWellElectrons is double existing && existing > 0 && existing < derived)
         {

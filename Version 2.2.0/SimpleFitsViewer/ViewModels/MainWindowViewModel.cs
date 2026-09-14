@@ -1210,8 +1210,30 @@ public partial class MainWindowViewModel : ViewModelBase
         // from the header. The next file load re-derives and may supersede it (see
         // CameraProfileResolver.ResolveFullWell for when it defers to a manual value).
         _profile.FullWellSource = "manual entry";
-        FullWellSourceText = "manual entry";
-        ApplyProfileFieldsFromText();
+        ApplyProfileFieldsFromText();   // parses the text into _profile.FullWellElectrons
+
+        // Issue #10: a hand-typed value above the ADC-limited ceiling is physically unreachable at
+        // this gain/ADU scale -- keeping it would understate saturation (the meter would divide the
+        // peak by a well that never fills). Cap it to the ceiling and say so. Values BELOW the
+        // ceiling are legitimate (the pixel fills first) and are left exactly as entered.
+        if (CameraProfileResolver.AdcLimitedFullWell(_profile, _header) is double cap
+            && _profile.FullWellElectrons is double fw && fw > cap)
+        {
+            _profile.FullWellElectrons = cap;
+            _profile.FullWellSource = "manual (capped at ADC ceiling)";
+            _suppressProfileSync = true;
+            FullWellText = cap.ToString("0.#");
+            _suppressProfileSync = false;
+            FullWellSourceText = _profile.FullWellSource;
+            InstructionText = $"Full well capped to the ADC ceiling (~{cap:F0} e-): a larger value "
+                            + "is unreachable at this gain and ADU scale, so it would understate "
+                            + "saturation. Clear the field to auto-derive.";
+            SaveProfile();
+        }
+        else
+        {
+            FullWellSourceText = "manual entry";
+        }
         Recompute();
     }
     partial void OnTargetElectronsTextChanged(string value) { if (_suppressProfileSync) return; ApplyProfileFieldsFromText(); Recompute(); }

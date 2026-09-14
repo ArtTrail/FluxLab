@@ -77,6 +77,20 @@
                     </LayoutTransformControl.LayoutTransform>
 
                     <Grid Name="ImageHost" HorizontalAlignment="Left" VerticalAlignment="Top">
+                        <!-- The aperture ring set shrinks with the image when zoomed out and can be
+                             hard to spot. A slow opacity pulse makes it flash like a beacon so the
+                             eye catches it at any zoom. -->
+                        <Grid.Styles>
+                            <Style Selector="Canvas#ApertureOverlay">
+                                <Style.Animations>
+                                    <Animation Duration="0:0:1.3" IterationCount="INFINITE"
+                                               PlaybackDirection="Alternate" Easing="SineEaseInOut">
+                                        <KeyFrame Cue="0%"><Setter Property="Opacity" Value="1.0"/></KeyFrame>
+                                        <KeyFrame Cue="100%"><Setter Property="Opacity" Value="0.35"/></KeyFrame>
+                                    </Animation>
+                                </Style.Animations>
+                            </Style>
+                        </Grid.Styles>
                         <Image Name="FitsImage" Source="{Binding DisplayImage}" Stretch="None"
                                HorizontalAlignment="Left" VerticalAlignment="Top"
                                RenderOptions.BitmapInterpolationMode="None"
