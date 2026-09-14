@@ -1,10 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Shapes;
 using Avalonia.Input;
+using Avalonia.Interactivity;
+using Avalonia.Layout;
+using Avalonia.Media;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using SimpleFitsViewer.Services;
@@ -401,6 +405,74 @@ public partial class MainWindow : Window
             Icon = Icon,
             WindowStartupLocation = WindowStartupLocation.CenterOwner,
             Content = new BugReportView { DataContext = vm },
+        };
+        win.Show(this);
+    }
+
+    private async void OnCheckForUpdatesClicked(object? sender, RoutedEventArgs e)
+    {
+        DiagnosticsLog.Log("[UI] Check for Updates clicked.");
+
+        UpdateInfo? info = null;
+        string message;
+        try
+        {
+            // Off the UI thread so the network call never blocks the dispatcher.
+            info = await Task.Run(() => UpdateService.CheckAsync(AppVersion.Version));
+            message = info is null
+                ? $"You are running the latest version (v{AppVersion.Version})."
+                : $"FluxLab v{info.Version} is available.\nYou are running v{AppVersion.Version}.";
+            DiagnosticsLog.Log(info is null
+                ? "[Update] Up to date."
+                : $"[Update] Newer version available: v{info.Version}");
+        }
+        catch (Exception ex)
+        {
+            message = $"Couldn't check for updates right now:\n{ex.Message}";
+            DiagnosticsLog.Log($"[Update] Check failed: {ex.Message}");
+        }
+
+        Window? win = null;
+        var stack = new StackPanel { Spacing = 14, Margin = new Thickness(18) };
+        stack.Children.Add(new TextBlock
+        {
+            Text = message,
+            TextWrapping = TextWrapping.Wrap,
+            Foreground = Brushes.White,
+            FontSize = 14,
+        });
+
+        var buttons = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            Spacing = 8,
+            HorizontalAlignment = HorizontalAlignment.Right,
+        };
+        if (info is not null)
+        {
+            var url = info.ReleaseUrl;
+            var open = new Button { Content = "Open Download Page", Padding = new Thickness(12, 6) };
+            open.Click += (_, _) =>
+            {
+                DiagnosticsLog.Log($"[Update] Opening release page: {url}");
+                TopLevel.GetTopLevel(this)?.Launcher.LaunchUriAsync(new Uri(url));
+            };
+            buttons.Children.Add(open);
+        }
+        var close = new Button { Content = "Close", Padding = new Thickness(12, 6) };
+        close.Click += (_, _) => win?.Close();
+        buttons.Children.Add(close);
+        stack.Children.Add(buttons);
+
+        win = new Window
+        {
+            Title = "Check for Updates",
+            Width = 380,
+            SizeToContent = SizeToContent.Height,
+            CanResize = false,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner,
+            Background = new SolidColorBrush(Color.Parse("#252535")),
+            Content = stack,
         };
         win.Show(this);
     }

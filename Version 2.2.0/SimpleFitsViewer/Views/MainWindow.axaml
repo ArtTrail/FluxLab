@@ -27,6 +27,7 @@
                 <MenuItem Header="User Guide" Click="OnUserGuideClicked"/>
                 <MenuItem Header="Revision History" Click="OnRevisionHistoryClicked"/>
                 <MenuItem Header="Submit Feedback" Click="OnSubmitFeedbackClicked"/>
+                <MenuItem Header="Check for Updates" Click="OnCheckForUpdatesClicked"/>
                 <Separator/>
                 <MenuItem Header="About FluxLab" Click="OnAboutClicked"/>
             </MenuItem>
