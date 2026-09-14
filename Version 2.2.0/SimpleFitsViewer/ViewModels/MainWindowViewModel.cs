@@ -600,6 +600,20 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private string _meterRecommendationText = "";
     [ObservableProperty] private IBrush _meterColor = Brushes.White;
 
+    // Graphical meter bars: fill 0-100, colour by zone, plus a text label. Saturation = peak vs full
+    // well (green<70 / amber 70-85 / red>=85, tick at 85). Signal = electrons vs target as a % of
+    // target (amber<70 / green>=70, tick at 70 = 0.7x target).
+    [ObservableProperty] private double _satBarValue;
+    [ObservableProperty] private IBrush _satBarBrush = Brushes.Gray;
+    [ObservableProperty] private string _satBarLabel = "—";
+    [ObservableProperty] private double _signalBarValue;
+    [ObservableProperty] private IBrush _signalBarBrush = Brushes.Gray;
+    [ObservableProperty] private string _signalBarLabel = "—";
+
+    private static readonly IBrush BarGreen = new SolidColorBrush(Color.Parse("#3fae5a"));
+    private static readonly IBrush BarAmber = new SolidColorBrush(Color.Parse("#d9a520"));
+    private static readonly IBrush BarRed   = new SolidColorBrush(Color.Parse("#d0503f"));
+
     /// <summary>Opens a single file fresh -- resets the aperture and sequence state, then
     /// auto-stretches. Use LoadDirectory to open a folder as a steppable sequence instead.</summary>
     public void LoadFile(string path)
@@ -1251,6 +1265,25 @@ public partial class MainWindowViewModel : ViewModelBase
         MeterStateText = string.IsNullOrEmpty(m.Detail) ? StateLabel(m.State) : $"{StateLabel(m.State)}  ({m.Detail})";
         MeterRecommendationText = m.Recommendation;
         MeterColor = new SolidColorBrush(StateColor(m.State));
+
+        // Saturation bar: peak vs full well.
+        if (m.SaturationPercent is double sat)
+        {
+            SatBarValue = Math.Clamp(sat, 0, 100);
+            SatBarBrush = sat >= ExposureMeter.SaturationWarnPct ? BarRed : sat >= 70 ? BarAmber : BarGreen;
+            SatBarLabel = $"{sat:F0}% {m.SaturationBasis}";
+        }
+        else { SatBarValue = 0; SatBarBrush = Brushes.Gray; SatBarLabel = "— (set gain)"; }
+
+        // Signal bar: total electrons vs target, as a % of target (clamped to 100 = target reached).
+        if (result.Electrons is double el && _profile.TargetElectrons > 0)
+        {
+            double pct = el / _profile.TargetElectrons * 100.0;
+            SignalBarValue = Math.Clamp(pct, 0, 100);
+            SignalBarBrush = pct < ExposureMeter.TargetLowFrac * 100.0 ? BarAmber : BarGreen;
+            SignalBarLabel = $"{el / _profile.TargetElectrons:F2}x target";
+        }
+        else { SignalBarValue = 0; SignalBarBrush = Brushes.Gray; SignalBarLabel = "— (set gain)"; }
     }
 
     private static string StateLabel(ExposureMeterState s) => s switch
@@ -1278,6 +1311,8 @@ public partial class MainWindowViewModel : ViewModelBase
         MeterStateText = "—";
         MeterRecommendationText = "";
         MeterColor = Brushes.White;
+        SatBarValue = 0; SatBarBrush = Brushes.Gray; SatBarLabel = "—";
+        SignalBarValue = 0; SignalBarBrush = Brushes.Gray; SignalBarLabel = "—";
         UpdateApertureOverlay();
     }
 

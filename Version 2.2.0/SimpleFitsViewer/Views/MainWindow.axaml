@@ -339,7 +339,36 @@
                     </StackPanel>
                     <TextBlock Text="{Binding MeterStateText}" Foreground="{Binding MeterColor}"
                                FontWeight="Bold" FontSize="13" TextWrapping="Wrap"/>
-                    <TextBlock Text="{Binding MeterRecommendationText}" Foreground="#dddddd" TextWrapping="Wrap" Margin="0,3,0,0"/>
+
+                    <!-- Saturation bar: peak vs full well; static tick at the 85% warn line. -->
+                    <Grid ColumnDefinitions="64,*,Auto" Margin="0,4,0,0">
+                        <TextBlock Grid.Column="0" Text="Saturation" Foreground="#cccccc" FontSize="11" VerticalAlignment="Center"/>
+                        <Grid Grid.Column="1" VerticalAlignment="Center">
+                            <ProgressBar Minimum="0" Maximum="100" Value="{Binding SatBarValue}"
+                                         Foreground="{Binding SatBarBrush}" Background="#1e1e30" Height="14"/>
+                            <Grid ColumnDefinitions="0.85*,0.15*" IsHitTestVisible="False">
+                                <Rectangle Grid.Column="1" Width="1" HorizontalAlignment="Left" Fill="#cfe0ff" Opacity="0.8"/>
+                            </Grid>
+                        </Grid>
+                        <TextBlock Grid.Column="2" Text="{Binding SatBarLabel}" Foreground="White" FontSize="11"
+                                   VerticalAlignment="Center" Margin="6,0,0,0" MinWidth="88"/>
+                    </Grid>
+
+                    <!-- Signal bar: electrons vs target; static tick at 0.7x target (70%). -->
+                    <Grid ColumnDefinitions="64,*,Auto" Margin="0,3,0,0">
+                        <TextBlock Grid.Column="0" Text="Signal" Foreground="#cccccc" FontSize="11" VerticalAlignment="Center"/>
+                        <Grid Grid.Column="1" VerticalAlignment="Center">
+                            <ProgressBar Minimum="0" Maximum="100" Value="{Binding SignalBarValue}"
+                                         Foreground="{Binding SignalBarBrush}" Background="#1e1e30" Height="14"/>
+                            <Grid ColumnDefinitions="0.70*,0.30*" IsHitTestVisible="False">
+                                <Rectangle Grid.Column="1" Width="1" HorizontalAlignment="Left" Fill="#cfe0ff" Opacity="0.8"/>
+                            </Grid>
+                        </Grid>
+                        <TextBlock Grid.Column="2" Text="{Binding SignalBarLabel}" Foreground="White" FontSize="11"
+                                   VerticalAlignment="Center" Margin="6,0,0,0" MinWidth="88"/>
+                    </Grid>
+
+                    <TextBlock Text="{Binding MeterRecommendationText}" Foreground="#dddddd" TextWrapping="Wrap" Margin="0,4,0,0"/>
                 </StackPanel>
             </ScrollViewer>
         </Border>
