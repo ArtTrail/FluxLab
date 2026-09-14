@@ -66,7 +66,8 @@
                            HorizontalAlignment="Right" FontFamily="Consolas,Menlo,monospace"/>
             </Grid>
 
-            <ScrollViewer Name="ImageScroller" Grid.Row="2"
+            <Grid Grid.Row="2">
+            <ScrollViewer Name="ImageScroller"
                           HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
                           PointerMoved="OnScrollerPointerMoved"
                           PointerReleased="OnScrollerPointerReleased">
@@ -98,6 +99,14 @@
                     </Grid>
                 </LayoutTransformControl>
             </ScrollViewer>
+
+            <!-- Shown only when no image is loaded; non-hit-testable so it never blocks a drop. -->
+            <TextBlock Text="Drag-and-Drop FITS files and Folders Here"
+                       IsVisible="{Binding DisplayImage, Converter={x:Static ObjectConverters.IsNull}}"
+                       IsHitTestVisible="False"
+                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                       Foreground="#556" FontSize="18" FontStyle="Italic"/>
+            </Grid>
 
             <!-- Histogram -->
             <Grid Grid.Row="3" RowDefinitions="Auto,Auto,Auto" Margin="0,8,0,0">
@@ -181,9 +190,9 @@
                                 </Flyout>
                             </Button.Flyout>
                         </Button>
+                        <Button Content="Plate Solve" Command="{Binding SolveCommand}"
+                                IsEnabled="{Binding !IsSolving}" Padding="8,3" Margin="6,0,0,0"/>
                     </StackPanel>
-                    <Button Content="Plate Solve (StarFix)" Command="{Binding SolveCommand}"
-                            IsEnabled="{Binding !IsSolving}" HorizontalAlignment="Stretch"/>
                     <TextBlock Text="{Binding SolveStatusText}" Foreground="{Binding SolveStatusColor}"
                                TextWrapping="Wrap" Margin="0,3,0,10"/>
 
