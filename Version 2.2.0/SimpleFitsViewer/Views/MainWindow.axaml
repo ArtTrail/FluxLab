@@ -100,26 +100,55 @@
 
                         <Canvas Name="ApertureOverlay" Width="{Binding DisplayImage.PixelSize.Width}"
                                 Height="{Binding DisplayImage.PixelSize.Height}" IsHitTestVisible="False">
+                            <!-- Each ring is drawn three times with the same glow so the blurred
+                                 halos add up (~3x glow intensity); the last copy carries the crisp
+                                 dashed stroke on top. -->
                             <Ellipse IsVisible="{Binding ApertureVisible}" Stroke="#33ff66" StrokeThickness="2"
                                      Canvas.Left="{Binding ApertureLeft}" Canvas.Top="{Binding ApertureTop}"
                                      Width="{Binding ApertureSize}" Height="{Binding ApertureSize}">
-                                <Ellipse.Effect>
-                                    <DropShadowEffect Color="#33ff66" BlurRadius="8" OffsetX="0" OffsetY="0"/>
-                                </Ellipse.Effect>
+                                <Ellipse.Effect><DropShadowEffect Color="#33ff66" BlurRadius="8" OffsetX="0" OffsetY="0"/></Ellipse.Effect>
+                            </Ellipse>
+                            <Ellipse IsVisible="{Binding ApertureVisible}" Stroke="#33ff66" StrokeThickness="2"
+                                     Canvas.Left="{Binding ApertureLeft}" Canvas.Top="{Binding ApertureTop}"
+                                     Width="{Binding ApertureSize}" Height="{Binding ApertureSize}">
+                                <Ellipse.Effect><DropShadowEffect Color="#33ff66" BlurRadius="8" OffsetX="0" OffsetY="0"/></Ellipse.Effect>
+                            </Ellipse>
+                            <Ellipse IsVisible="{Binding ApertureVisible}" Stroke="#33ff66" StrokeThickness="2"
+                                     Canvas.Left="{Binding ApertureLeft}" Canvas.Top="{Binding ApertureTop}"
+                                     Width="{Binding ApertureSize}" Height="{Binding ApertureSize}">
+                                <Ellipse.Effect><DropShadowEffect Color="#33ff66" BlurRadius="8" OffsetX="0" OffsetY="0"/></Ellipse.Effect>
+                            </Ellipse>
+
+                            <Ellipse IsVisible="{Binding ApertureVisible}" Stroke="#2a7bff" StrokeThickness="2.4"
+                                     Canvas.Left="{Binding AnnulusInnerLeft}" Canvas.Top="{Binding AnnulusInnerTop}"
+                                     Width="{Binding AnnulusInnerSize}" Height="{Binding AnnulusInnerSize}">
+                                <Ellipse.Effect><DropShadowEffect Color="#2a7bff" BlurRadius="11" OffsetX="0" OffsetY="0"/></Ellipse.Effect>
+                            </Ellipse>
+                            <Ellipse IsVisible="{Binding ApertureVisible}" Stroke="#2a7bff" StrokeThickness="2.4"
+                                     Canvas.Left="{Binding AnnulusInnerLeft}" Canvas.Top="{Binding AnnulusInnerTop}"
+                                     Width="{Binding AnnulusInnerSize}" Height="{Binding AnnulusInnerSize}">
+                                <Ellipse.Effect><DropShadowEffect Color="#2a7bff" BlurRadius="11" OffsetX="0" OffsetY="0"/></Ellipse.Effect>
                             </Ellipse>
                             <Ellipse IsVisible="{Binding ApertureVisible}" Stroke="#2a7bff" StrokeThickness="2.4" StrokeDashArray="4,3"
                                      Canvas.Left="{Binding AnnulusInnerLeft}" Canvas.Top="{Binding AnnulusInnerTop}"
                                      Width="{Binding AnnulusInnerSize}" Height="{Binding AnnulusInnerSize}">
-                                <Ellipse.Effect>
-                                    <DropShadowEffect Color="#2a7bff" BlurRadius="11" OffsetX="0" OffsetY="0"/>
-                                </Ellipse.Effect>
+                                <Ellipse.Effect><DropShadowEffect Color="#2a7bff" BlurRadius="11" OffsetX="0" OffsetY="0"/></Ellipse.Effect>
+                            </Ellipse>
+
+                            <Ellipse IsVisible="{Binding ApertureVisible}" Stroke="#ff3344" StrokeThickness="2.4"
+                                     Canvas.Left="{Binding AnnulusOuterLeft}" Canvas.Top="{Binding AnnulusOuterTop}"
+                                     Width="{Binding AnnulusOuterSize}" Height="{Binding AnnulusOuterSize}">
+                                <Ellipse.Effect><DropShadowEffect Color="#ff3344" BlurRadius="11" OffsetX="0" OffsetY="0"/></Ellipse.Effect>
+                            </Ellipse>
+                            <Ellipse IsVisible="{Binding ApertureVisible}" Stroke="#ff3344" StrokeThickness="2.4"
+                                     Canvas.Left="{Binding AnnulusOuterLeft}" Canvas.Top="{Binding AnnulusOuterTop}"
+                                     Width="{Binding AnnulusOuterSize}" Height="{Binding AnnulusOuterSize}">
+                                <Ellipse.Effect><DropShadowEffect Color="#ff3344" BlurRadius="11" OffsetX="0" OffsetY="0"/></Ellipse.Effect>
                             </Ellipse>
                             <Ellipse IsVisible="{Binding ApertureVisible}" Stroke="#ff3344" StrokeThickness="2.4" StrokeDashArray="4,3"
                                      Canvas.Left="{Binding AnnulusOuterLeft}" Canvas.Top="{Binding AnnulusOuterTop}"
                                      Width="{Binding AnnulusOuterSize}" Height="{Binding AnnulusOuterSize}">
-                                <Ellipse.Effect>
-                                    <DropShadowEffect Color="#ff3344" BlurRadius="11" OffsetX="0" OffsetY="0"/>
-                                </Ellipse.Effect>
+                                <Ellipse.Effect><DropShadowEffect Color="#ff3344" BlurRadius="11" OffsetX="0" OffsetY="0"/></Ellipse.Effect>
                             </Ellipse>
                         </Canvas>
                     </Grid>
@@ -190,7 +219,7 @@
             <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <!-- Right margin keeps the controls off the scrollbar (the gap is between the
                      buttons and the scrollbar, not between the pane and the window edge). -->
-                <StackPanel Spacing="3" Margin="0,0,8,0">
+                <StackPanel Spacing="3" Margin="0,0,14,0">
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="6" Margin="0,0,0,2">
                         <TextBlock Text="Aperture Photometry" FontWeight="Bold" FontSize="13"
                                    Foreground="White" VerticalAlignment="Center"/>
