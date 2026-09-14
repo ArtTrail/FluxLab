@@ -134,19 +134,61 @@
                     <!-- 14 -->
                     <TextBlock x:Name="Section14" Classes="h2" Text="14. References" Margin="0,16,0,0"/>
                     <TextBlock TextWrapping="Wrap" Text="The algorithms and data sources FluxLab is built on, for anyone who wants to read further. FluxLab implements the photometry, ZScale display stretch, and WCS (TAN+SIP) in C# and validated them against astropy [1]; it does not bundle these packages."/>
-                    <TextBlock TextWrapping="Wrap" Text="[1] Astropy Collaboration, Price-Whelan, A. M., et al. 2022, &quot;The Astropy Project: Sustaining and Growing a Community-oriented Open-source Project and the Latest Major Release (v5.0),&quot; The Astrophysical Journal, 935, 167. (Reference implementation FluxLab's ZScale, WCS, and photometry were validated against.)  https://doi.org/10.3847/1538-4357/ac7c74  ·  https://www.astropy.org"/>
-                    <TextBlock TextWrapping="Wrap" Text="[2] Howell, S. B. 2006, &quot;Handbook of CCD Astronomy,&quot; 2nd ed., Cambridge University Press. (Aperture photometry, the signal-to-noise equation, and sky-background estimation.)  https://doi.org/10.1017/CBO9780511807909"/>
-                    <TextBlock TextWrapping="Wrap" Text="[3] Naylor, T. 1998, &quot;An optimal extraction algorithm for imaging photometry,&quot; Monthly Notices of the Royal Astronomical Society, 296, 339. (Why the highest-SNR aperture is not simply the brightest-enclosing one — the basis for FluxLab's SNR-optimal, curve-of-growth aperture sizing.)  https://doi.org/10.1046/j.1365-8711.1998.01353.x"/>
-                    <TextBlock TextWrapping="Wrap" Text="[4] Beers, T. C., Flynn, K., &amp; Gebhardt, K. 1990, &quot;Measures of Location and Scale for Velocities in Clusters of Galaxies — A Robust Approach,&quot; The Astronomical Journal, 100, 32. (Robust median/MAD statistics, as used for FluxLab's sky estimate.)  https://doi.org/10.1086/115487"/>
-                    <TextBlock TextWrapping="Wrap" Text="[5] Greisen, E. W., &amp; Calabretta, M. R. 2002, &quot;Representations of world coordinates in FITS,&quot; Astronomy &amp; Astrophysics, 395, 1061. (FITS WCS, Paper I.)  https://doi.org/10.1051/0004-6361:20021326"/>
-                    <TextBlock TextWrapping="Wrap" Text="[6] Calabretta, M. R., &amp; Greisen, E. W. 2002, &quot;Representations of celestial coordinates in FITS,&quot; Astronomy &amp; Astrophysics, 395, 1077. (The TAN / gnomonic projection FluxLab reads, Paper II.)  https://doi.org/10.1051/0004-6361:20021327"/>
-                    <TextBlock TextWrapping="Wrap" Text="[7] Shupe, D. L., Moshir, M., Li, J., et al. 2005, &quot;The SIP Convention for Representing Distortion in FITS Image Headers,&quot; ASP Conference Series, 347, 491. (The SIP distortion terms FluxLab applies.)  https://ui.adsabs.harvard.edu/abs/2005ASPC..347..491S"/>
-                    <TextBlock TextWrapping="Wrap" Text="[8] Tody, D. 1986, &quot;The IRAF Data Reduction and Analysis System,&quot; Proc. SPIE, 627, 733. (IRAF, the origin of the ZScale display algorithm.)  https://doi.org/10.1117/12.968154"/>
-                    <TextBlock TextWrapping="Wrap" Text="[9] Joye, W. A., &amp; Mandel, E. 2003, &quot;New Features of SAOImage DS9,&quot; ASP Conference Series, 295, 489. (DS9, whose ZScale behaviour FluxLab's Auto Stretch matches.)  https://ui.adsabs.harvard.edu/abs/2003ASPC..295..489J"/>
-                    <TextBlock TextWrapping="Wrap" Text="[10] Gaia Collaboration, Vallenari, A., Brown, A. G. A., et al. 2023, &quot;Gaia Data Release 3: Summary of the content and survey properties,&quot; Astronomy &amp; Astrophysics, 674, A1. (Proper motions and positions underlying Find Target and StarFix plate solving.)  https://doi.org/10.1051/0004-6361/202243940"/>
-                    <TextBlock TextWrapping="Wrap" Text="[11] Watson, C. L., Henden, A. A., &amp; Price, A. 2006, &quot;The International Variable Star Index (VSX),&quot; Society for Astronomical Sciences Annual Symposium, 25, 47. (Find Target's variable-star source.)  https://www.aavso.org/vsx"/>
-                    <TextBlock TextWrapping="Wrap" Text="[12] Akeson, R. L., Chen, X., Ciardi, D., et al. 2013, &quot;The NASA Exoplanet Archive: Data and Tools for Exoplanet Research,&quot; Publications of the Astronomical Society of the Pacific, 125, 989. (Find Target's exoplanet-host source.)  https://doi.org/10.1086/672273"/>
-                    <TextBlock TextWrapping="Wrap" Text="[13] Wenger, M., Ochsenbein, F., Egret, D., et al. 2000, &quot;The SIMBAD astronomical database,&quot; Astronomy &amp; Astrophysics Supplement Series, 143, 9. (Find Target's general-object source.)  https://doi.org/10.1051/aas:2000332"/>
+                    <StackPanel Spacing="2">
+                        <TextBlock TextWrapping="Wrap" Text="[1] Astropy Collaboration, Price-Whelan, A. M., et al. 2022, &quot;The Astropy Project: Sustaining and Growing a Community-oriented Open-source Project and the Latest Major Release (v5.0),&quot; The Astrophysical Journal, 935, 167. (Reference implementation FluxLab's ZScale, WCS, and photometry were validated against.)"/>
+                        <StackPanel Orientation="Horizontal" Spacing="16">
+                            <Button Classes="link" Content="https://doi.org/10.3847/1538-4357/ac7c74" Tag="https://doi.org/10.3847/1538-4357/ac7c74" Click="OnLinkClick"/>
+                            <Button Classes="link" Content="https://www.astropy.org" Tag="https://www.astropy.org" Click="OnLinkClick"/>
+                        </StackPanel>
+                    </StackPanel>
+                    <StackPanel Spacing="2">
+                        <TextBlock TextWrapping="Wrap" Text="[2] Howell, S. B. 2006, &quot;Handbook of CCD Astronomy,&quot; 2nd ed., Cambridge University Press. (Aperture photometry, the signal-to-noise equation, and sky-background estimation.)"/>
+                        <Button Classes="link" Content="https://doi.org/10.1017/CBO9780511807909" Tag="https://doi.org/10.1017/CBO9780511807909" Click="OnLinkClick"/>
+                    </StackPanel>
+                    <StackPanel Spacing="2">
+                        <TextBlock TextWrapping="Wrap" Text="[3] Naylor, T. 1998, &quot;An optimal extraction algorithm for imaging photometry,&quot; Monthly Notices of the Royal Astronomical Society, 296, 339. (Why the highest-SNR aperture is not simply the brightest-enclosing one — the basis for FluxLab's SNR-optimal, curve-of-growth aperture sizing.)"/>
+                        <Button Classes="link" Content="https://doi.org/10.1046/j.1365-8711.1998.01353.x" Tag="https://doi.org/10.1046/j.1365-8711.1998.01353.x" Click="OnLinkClick"/>
+                    </StackPanel>
+                    <StackPanel Spacing="2">
+                        <TextBlock TextWrapping="Wrap" Text="[4] Beers, T. C., Flynn, K., &amp; Gebhardt, K. 1990, &quot;Measures of Location and Scale for Velocities in Clusters of Galaxies — A Robust Approach,&quot; The Astronomical Journal, 100, 32. (Robust median/MAD statistics, as used for FluxLab's sky estimate.)"/>
+                        <Button Classes="link" Content="https://doi.org/10.1086/115487" Tag="https://doi.org/10.1086/115487" Click="OnLinkClick"/>
+                    </StackPanel>
+                    <StackPanel Spacing="2">
+                        <TextBlock TextWrapping="Wrap" Text="[5] Greisen, E. W., &amp; Calabretta, M. R. 2002, &quot;Representations of world coordinates in FITS,&quot; Astronomy &amp; Astrophysics, 395, 1061. (FITS WCS, Paper I.)"/>
+                        <Button Classes="link" Content="https://doi.org/10.1051/0004-6361:20021326" Tag="https://doi.org/10.1051/0004-6361:20021326" Click="OnLinkClick"/>
+                    </StackPanel>
+                    <StackPanel Spacing="2">
+                        <TextBlock TextWrapping="Wrap" Text="[6] Calabretta, M. R., &amp; Greisen, E. W. 2002, &quot;Representations of celestial coordinates in FITS,&quot; Astronomy &amp; Astrophysics, 395, 1077. (The TAN / gnomonic projection FluxLab reads, Paper II.)"/>
+                        <Button Classes="link" Content="https://doi.org/10.1051/0004-6361:20021327" Tag="https://doi.org/10.1051/0004-6361:20021327" Click="OnLinkClick"/>
+                    </StackPanel>
+                    <StackPanel Spacing="2">
+                        <TextBlock TextWrapping="Wrap" Text="[7] Shupe, D. L., Moshir, M., Li, J., et al. 2005, &quot;The SIP Convention for Representing Distortion in FITS Image Headers,&quot; ASP Conference Series, 347, 491. (The SIP distortion terms FluxLab applies.)"/>
+                        <Button Classes="link" Content="https://ui.adsabs.harvard.edu/abs/2005ASPC..347..491S" Tag="https://ui.adsabs.harvard.edu/abs/2005ASPC..347..491S" Click="OnLinkClick"/>
+                    </StackPanel>
+                    <StackPanel Spacing="2">
+                        <TextBlock TextWrapping="Wrap" Text="[8] Tody, D. 1986, &quot;The IRAF Data Reduction and Analysis System,&quot; Proc. SPIE, 627, 733. (IRAF, the origin of the ZScale display algorithm.)"/>
+                        <Button Classes="link" Content="https://doi.org/10.1117/12.968154" Tag="https://doi.org/10.1117/12.968154" Click="OnLinkClick"/>
+                    </StackPanel>
+                    <StackPanel Spacing="2">
+                        <TextBlock TextWrapping="Wrap" Text="[9] Joye, W. A., &amp; Mandel, E. 2003, &quot;New Features of SAOImage DS9,&quot; ASP Conference Series, 295, 489. (DS9, whose ZScale behaviour FluxLab's Auto Stretch matches.)"/>
+                        <Button Classes="link" Content="https://ui.adsabs.harvard.edu/abs/2003ASPC..295..489J" Tag="https://ui.adsabs.harvard.edu/abs/2003ASPC..295..489J" Click="OnLinkClick"/>
+                    </StackPanel>
+                    <StackPanel Spacing="2">
+                        <TextBlock TextWrapping="Wrap" Text="[10] Gaia Collaboration, Vallenari, A., Brown, A. G. A., et al. 2023, &quot;Gaia Data Release 3: Summary of the content and survey properties,&quot; Astronomy &amp; Astrophysics, 674, A1. (Proper motions and positions underlying Find Target and StarFix plate solving.)"/>
+                        <Button Classes="link" Content="https://doi.org/10.1051/0004-6361/202243940" Tag="https://doi.org/10.1051/0004-6361/202243940" Click="OnLinkClick"/>
+                    </StackPanel>
+                    <StackPanel Spacing="2">
+                        <TextBlock TextWrapping="Wrap" Text="[11] Watson, C. L., Henden, A. A., &amp; Price, A. 2006, &quot;The International Variable Star Index (VSX),&quot; Society for Astronomical Sciences Annual Symposium, 25, 47. (Find Target's variable-star source.)"/>
+                        <Button Classes="link" Content="https://www.aavso.org/vsx" Tag="https://www.aavso.org/vsx" Click="OnLinkClick"/>
+                    </StackPanel>
+                    <StackPanel Spacing="2">
+                        <TextBlock TextWrapping="Wrap" Text="[12] Akeson, R. L., Chen, X., Ciardi, D., et al. 2013, &quot;The NASA Exoplanet Archive: Data and Tools for Exoplanet Research,&quot; Publications of the Astronomical Society of the Pacific, 125, 989. (Find Target's exoplanet-host source.)"/>
+                        <Button Classes="link" Content="https://doi.org/10.1086/672273" Tag="https://doi.org/10.1086/672273" Click="OnLinkClick"/>
+                    </StackPanel>
+                    <StackPanel Spacing="2">
+                        <TextBlock TextWrapping="Wrap" Text="[13] Wenger, M., Ochsenbein, F., Egret, D., et al. 2000, &quot;The SIMBAD astronomical database,&quot; Astronomy &amp; Astrophysics Supplement Series, 143, 9. (Find Target's general-object source.)"/>
+                        <Button Classes="link" Content="https://doi.org/10.1051/aas:2000332" Tag="https://doi.org/10.1051/aas:2000332" Click="OnLinkClick"/>
+                    </StackPanel>
 
                     <Border Height="60"/>
 

@@ -7,6 +7,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.LogicalTree;
 using Avalonia.Media;
+using SimpleFitsViewer.Services;
 
 namespace SimpleFitsViewer.Views;
 
@@ -152,4 +153,14 @@ public partial class UserGuideView : UserControl
 
     private void OnBackToTopClick(object? sender, RoutedEventArgs e) =>
         MainScrollViewer.Offset = new Vector(MainScrollViewer.Offset.X, 0);
+
+    /// <summary>Opens a reference link's Tag URL in the system browser via the platform Launcher.</summary>
+    private async void OnLinkClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { Tag: string url } || string.IsNullOrWhiteSpace(url)) return;
+        var top = TopLevel.GetTopLevel(this);
+        if (top is null) return;
+        try { await top.Launcher.LaunchUriAsync(new Uri(url)); }
+        catch (Exception ex) { DiagnosticsLog.LogException($"Opening link {url}", ex); }
+    }
 }
