@@ -88,6 +88,7 @@
                     <TextBlock x:Name="Section6" Classes="h2" Text="6. Why 100,000 electrons is a sensible default for any camera" Margin="0,16,0,0"/>
                     <TextBlock TextWrapping="Wrap" Text="Unlike Gain/ADU scale/Full well, Target electrons is not a property of your sensor — an electron is an electron. It follows from photon noise alone: SNR = sqrt(N), so precision ~ 1.0857/sqrt(N). 50,000 e- gives SNR ~224 (4.9 mmag); 100,000 e- gives SNR ~316 (3.4 mmag); 1,000,000 e- gives SNR ~1000 (1.1 mmag)."/>
                     <TextBlock TextWrapping="Wrap" Text="100,000 sits in the useful range for exoplanet transits (~1-5 mmag). Raise it for shallow transits or precise variable work; the number to change is driven by the precision you need, not by the camera."/>
+                    <TextBlock TextWrapping="Wrap" Text="This is consistent with published guidance rather than an arbitrary figure. The AAVSO Guide to CCD/CMOS Photometry [14] gives the same precision relation, sigma_m = 1.0857/SNR, and calls SNR above ~100 good-to-excellent and below ~10-20 poor; 100,000 e- yields SNR ~316, comfortably in the good range. Dennis Conti's A Practical Guide to Exoplanet Observing [15] and the AAVSO Exoplanet Section [16] frame the goal as maximising SNR without reaching non-linearity or saturation, at the few-mmag precision transits need. The specific round number 100,000 is FluxLab's default; the standard behind it is the SNR/precision relation and that SNR>100 target."/>
                     <TextBlock TextWrapping="Wrap" Text="Two caveats. Those figures are a best case: sky background, read noise and scintillation add on top, so hitting the target does not guarantee that precision. And on a bright, sharply-focused star the peak pixel can saturate before the aperture sum ever reaches the target — if the meter alternates between NEAR SATURATION and LOW SIGNAL as you adjust exposure, that is it telling you one frame cannot do both. Shorten the exposure and stack, or defocus slightly."/>
 
                     <!-- 7 -->
@@ -189,6 +190,18 @@
                     <StackPanel Spacing="2">
                         <TextBlock TextWrapping="Wrap" Text="[13] Wenger, M., Ochsenbein, F., Egret, D., et al. 2000, &quot;The SIMBAD astronomical database,&quot; Astronomy &amp; Astrophysics Supplement Series, 143, 9. (Find Target's general-object source.)"/>
                         <Button Classes="link" Content="https://doi.org/10.1051/aas:2000332" Tag="https://doi.org/10.1051/aas:2000332" Click="OnLinkClick"/>
+                    </StackPanel>
+                    <StackPanel Spacing="2">
+                        <TextBlock TextWrapping="Wrap" Text="[14] AAVSO, &quot;Guide to CCD/CMOS Photometry with Monochrome Cameras.&quot; (The precision relation sigma_m = 1.0857/SNR, the SNR quality guidance behind the Exposure Meter and Precision readout, and the growth-curve aperture rationale.)"/>
+                        <Button Classes="link" Content="https://www.aavso.org/ccd-camera-photometry-guide" Tag="https://www.aavso.org/ccd-camera-photometry-guide" Click="OnLinkClick"/>
+                    </StackPanel>
+                    <StackPanel Spacing="2">
+                        <TextBlock TextWrapping="Wrap" Text="[15] Conti, D. M., &quot;A Practical Guide to Exoplanet Observing&quot; (AAVSO). (Best practice for exposure: maximise target SNR without reaching non-linearity or saturation; the few-mmag precision transit work needs -- the basis for the 100,000 e- default.)"/>
+                        <Button Classes="link" Content="https://astrodennis.com/Guide.pdf" Tag="https://astrodennis.com/Guide.pdf" Click="OnLinkClick"/>
+                    </StackPanel>
+                    <StackPanel Spacing="2">
+                        <TextBlock TextWrapping="Wrap" Text="[16] AAVSO Exoplanet Section (incl. the AAVSO Exoplanet Observing Manual). (Community standards for exoplanet transit photometry that FluxLab's exposure/target guidance follows.)"/>
+                        <Button Classes="link" Content="https://www.aavso.org/exoplanet-section" Tag="https://www.aavso.org/exoplanet-section" Click="OnLinkClick"/>
                     </StackPanel>
 
                     <Border Height="60"/>
