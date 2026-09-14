@@ -1190,9 +1190,25 @@ public partial class MainWindowViewModel : ViewModelBase
     partial void OnFullWellTextChanged(string value)
     {
         if (_suppressProfileSync) return;
-        // Typing over a derived value makes it the user's number -- label it honestly, and stop
-        // claiming it came from the header. The next file load re-derives and may supersede it
-        // (see CameraProfileResolver.ResolveFullWell for when it defers to a manual value).
+
+        // Clearing the field means "reset to auto-derived": re-derive for the current frame right
+        // now instead of leaving a blank manual value stuck until the next file load. Without this
+        // there was no way to un-set a manual full well from the UI (clearing it just left it blank).
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            _profile.FullWellElectrons = null;
+            _profile.FullWellSource = "";
+            if (_pixels.Length > 0)
+                CameraProfileResolver.ResolveFullWell(_profile, _header);   // needs gain + BITPIX
+            SyncProfileTextFromResolved();   // fills the field with the derived value + its source
+            SaveProfile();
+            Recompute();
+            return;
+        }
+
+        // Typing a value makes it the user's number -- label it honestly, and stop claiming it came
+        // from the header. The next file load re-derives and may supersede it (see
+        // CameraProfileResolver.ResolveFullWell for when it defers to a manual value).
         _profile.FullWellSource = "manual entry";
         FullWellSourceText = "manual entry";
         ApplyProfileFieldsFromText();
