@@ -1,0 +1,130 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="SimpleFitsViewer.App"
+             xmlns:local="using:SimpleFitsViewer"
+             RequestedThemeVariant="Dark">
+             <!-- Pinned to Dark. The whole UI is painted on a hardcoded dark ground (#1e1e2e for the
+                  main window, Nord #2e3440 for the ecosystem surfaces), so it must NOT follow the OS
+                  theme: on a machine set to Windows Light mode, "Default" made FluentTheme give
+                  buttons dark text, which was near-invisible/black on our dark background (reported
+                  by a user running Windows in light mode). "Light"/"Default" are the other options. -->
+
+    <Application.DataTemplates>
+        <local:ViewLocator/>
+    </Application.DataTemplates>
+
+    <!-- Nord palette shared with StarFix / VariLab / TransitLab. Declared as resources so the
+         ecosystem-matched surfaces (header banner, About, User Guide, Revision History) can opt in
+         via {StaticResource}; the main photometry window keeps its own theme and is untouched. -->
+    <Application.Resources>
+        <SolidColorBrush x:Key="BrushBg"     Color="#2e3440"/>
+        <SolidColorBrush x:Key="BrushBg2"    Color="#3b4252"/>
+        <SolidColorBrush x:Key="BrushField"  Color="#434c5e"/>
+        <SolidColorBrush x:Key="BrushFg"     Color="#eceff4"/>
+        <SolidColorBrush x:Key="BrushAccent" Color="#88c0d0"/>
+        <SolidColorBrush x:Key="BrushHint"   Color="#8892a0"/>
+        <SolidColorBrush x:Key="BrushBtn"    Color="#5e81ac"/>
+        <SolidColorBrush x:Key="BrushBtnHov" Color="#81a1c1"/>
+        <SolidColorBrush x:Key="BrushSep"    Color="#4c566a"/>
+        <SolidColorBrush x:Key="BrushWarn"   Color="#ebcb8b"/>
+        <SolidColorBrush x:Key="BrushOk"     Color="#a3be8c"/>
+        <SolidColorBrush x:Key="BrushErr"    Color="#bf616a"/>
+    </Application.Resources>
+
+    <Application.Styles>
+        <FluentTheme />
+        <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"/>
+
+        <!-- Opt-in classes only (each selector requires Classes="..."), so nothing here restyles
+             an existing control unless it asks for the class. Mirrors the siblings' App.axaml
+             classes, minus the implicit base-control styles that would recolor the main window. -->
+        <Style Selector="TextBlock.title">
+            <Setter Property="FontFamily" Value="Arial"/>
+            <Setter Property="FontSize" Value="26"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="{StaticResource BrushFg}"/>
+        </Style>
+        <Style Selector="TextBlock.h2">
+            <Setter Property="FontFamily" Value="Arial"/>
+            <Setter Property="FontSize" Value="20"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="{StaticResource BrushAccent}"/>
+        </Style>
+        <Style Selector="TextBlock.body">
+            <Setter Property="FontFamily" Value="Arial"/>
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="Foreground" Value="{StaticResource BrushFg}"/>
+        </Style>
+        <Style Selector="TextBlock.hint">
+            <Setter Property="FontFamily" Value="Arial"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontStyle" Value="Italic"/>
+            <Setter Property="Foreground" Value="{StaticResource BrushHint}"/>
+        </Style>
+        <Style Selector="Button.primary">
+            <Setter Property="Background" Value="{StaticResource BrushAccent}"/>
+            <Setter Property="Foreground" Value="{StaticResource BrushBg}"/>
+            <Setter Property="FontFamily" Value="Arial"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Padding" Value="14,6"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        </Style>
+        <Style Selector="Button.primary:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource BrushBtnHov}"/>
+        </Style>
+        <Style Selector="Button.link">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Foreground" Value="{StaticResource BrushAccent}"/>
+            <Setter Property="FontFamily" Value="Arial"/>
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style Selector="Button.link:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        <Style Selector="Button.link:pointerover">
+            <Setter Property="Foreground" Value="{StaticResource BrushBtnHov}"/>
+        </Style>
+        <!-- Small round "?" help button: click opens its Flyout with the explanatory text. -->
+        <Style Selector="Button.help">
+            <Setter Property="Width" Value="18"/>
+            <Setter Property="Height" Value="18"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="CornerRadius" Value="9"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Background" Value="#2c3350"/>
+            <Setter Property="Foreground" Value="#88bbff"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style Selector="Button.help:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#3a4570"/>
+        </Style>
+
+        <Style Selector="Button.fab">
+            <Setter Property="Background" Value="{StaticResource BrushBtn}"/>
+            <Setter Property="Foreground" Value="{StaticResource BrushFg}"/>
+            <Setter Property="FontSize" Value="22"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="CornerRadius" Value="24"/>
+            <Setter Property="Width" Value="48"/>
+            <Setter Property="Height" Value="48"/>
+            <Setter Property="Padding" Value="0"/>
+            <!-- Centre the glyph in the circle. FluxLab has no global Button content-centering rule
+                 (that would restyle the main window), so the fab sets it itself. -->
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+        <Style Selector="Button.fab:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource BrushBtnHov}"/>
+        </Style>
+    </Application.Styles>
+</Application>

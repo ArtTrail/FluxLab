@@ -1,0 +1,41 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:SimpleFitsViewer.ViewModels"
+        xmlns:dg="using:Avalonia.Controls"
+        x:Class="SimpleFitsViewer.Views.HeaderWindow"
+        x:DataType="vm:HeaderWindowViewModel"
+        Title="FITS Header" Width="620" Height="700"
+        Background="#1e1e30">
+    <Grid RowDefinitions="Auto,Auto,*,Auto,Auto" Margin="10">
+        <TextBlock Grid.Row="0" Text="FITS Header" FontWeight="Bold" FontSize="14" Foreground="White" Margin="0,0,0,6"/>
+
+        <Grid Grid.Row="1" ColumnDefinitions="Auto,*" Margin="0,0,0,6">
+            <TextBlock Grid.Column="0" Text="Search:" Foreground="#cccccc" VerticalAlignment="Center" Margin="0,0,6,0"/>
+            <TextBox Grid.Column="1" Text="{Binding SearchText}" Watermark="Filter by keyword, value, or comment"/>
+        </Grid>
+
+        <DataGrid Grid.Row="2" ItemsSource="{Binding Rows}" SelectedItem="{Binding SelectedRow}"
+                   AutoGenerateColumns="False" CanUserResizeColumns="True" CanUserSortColumns="False"
+                   GridLinesVisibility="Horizontal" HeadersVisibility="Column" IsReadOnly="False">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Keyword" Binding="{Binding Keyword, Mode=OneWay}" Width="90" IsReadOnly="True"/>
+                <DataGridTextColumn Header="Value" Binding="{Binding Value}" Width="180"/>
+                <DataGridTextColumn Header="Comment" Binding="{Binding Comment}" Width="*"/>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <TextBlock Grid.Row="3" Text="Double-click a Value or Comment cell to edit it."
+                   Foreground="#6666aa" FontStyle="Italic" FontSize="11" Margin="0,4,0,0"/>
+
+        <Grid Grid.Row="4" ColumnDefinitions="Auto,Auto,*,Auto" Margin="0,8,0,0">
+            <Button Grid.Column="0" Content="Add Keyword" Click="OnAddKeywordClicked"
+                    Background="#1a5080" Foreground="White" Padding="10,4" Margin="0,0,6,0"/>
+            <Button Grid.Column="1" Content="Delete Keyword" Command="{Binding DeleteKeywordCommand}"
+                    Background="#6a1a1a" Foreground="White" Padding="10,4"/>
+            <TextBlock Grid.Column="2" Text="{Binding StatusText}" Foreground="#8888bb"
+                       VerticalAlignment="Center" Margin="10,0,10,0" TextWrapping="Wrap"/>
+            <Button Grid.Column="3" Content="Save to File" Click="OnSaveClicked"
+                    IsEnabled="{Binding CanSave}" Background="#1a6a30" Foreground="White" Padding="10,4"/>
+        </Grid>
+    </Grid>
+</Window>

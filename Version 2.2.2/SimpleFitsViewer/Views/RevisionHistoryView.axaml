@@ -1,0 +1,43 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:svc="using:SimpleFitsViewer.Services"
+             x:Class="SimpleFitsViewer.Views.RevisionHistoryView"
+             Background="{StaticResource BrushBg}">
+
+    <!-- Base text scoped to this view only, so the body matches StarFix's Arial/20 revision
+         history without restyling the main photometry window. -->
+    <UserControl.Styles>
+        <Style Selector="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource BrushFg}"/>
+            <Setter Property="FontFamily" Value="Arial"/>
+            <Setter Property="FontSize" Value="20"/>
+        </Style>
+    </UserControl.Styles>
+
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="32,20,32,24" Spacing="6">
+            <TextBlock Classes="title" Text="FluxLab — Revision History" Margin="0,0,0,10"/>
+
+            <ItemsControl x:Name="Entries">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="svc:RevisionEntry">
+                        <StackPanel Spacing="6" Margin="0,12,0,0">
+                            <TextBlock Classes="h2" Text="{Binding Header}"/>
+                            <ItemsControl ItemsSource="{Binding Bullets}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="x:String">
+                                        <Grid ColumnDefinitions="Auto,*" Margin="0,2,0,0">
+                                            <TextBlock Grid.Column="0" Text="•  "/>
+                                            <TextBlock Grid.Column="1" Text="{Binding}" TextWrapping="Wrap"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </StackPanel>
+    </ScrollViewer>
+
+</UserControl>

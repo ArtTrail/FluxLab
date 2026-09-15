@@ -1,0 +1,495 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:SimpleFitsViewer.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="1080" d:DesignHeight="720"
+        x:Class="SimpleFitsViewer.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="FluxLab  v2.2.2"
+        Icon="avares://FluxLab/Assets/FluxLab.ico"
+        Width="1200" Height="780"
+        Background="#1e1e2e"
+        DragDrop.AllowDrop="True">
+
+    <Design.DataContext>
+        <vm:MainWindowViewModel/>
+    </Design.DataContext>
+
+    <Grid RowDefinitions="Auto,Auto,*">
+        <Menu Grid.Row="0">
+            <MenuItem Header="_Tools">
+                <MenuItem Header="FITS Header" Click="OnFitsHeaderClicked"/>
+                <MenuItem Header="Plate Solver" Click="OnPlateSolverSettingsClicked"/>
+                <MenuItem Header="Diagnostics" Click="OnDiagnosticsClicked"/>
+            </MenuItem>
+            <MenuItem Header="_Help">
+                <MenuItem Header="User Guide" Click="OnUserGuideClicked"/>
+                <MenuItem Header="Revision History" Click="OnRevisionHistoryClicked"/>
+                <MenuItem Header="Submit Feedback" Click="OnSubmitFeedbackClicked"/>
+                <MenuItem Header="Check for Updates" Click="OnCheckForUpdatesClicked"/>
+                <Separator/>
+                <MenuItem Header="About FluxLab" Click="OnAboutClicked"/>
+            </MenuItem>
+        </Menu>
+
+        <!-- Header banner: logo + title, bigger than just the window/taskbar icon. Matches the
+             shared banner in StarFix / VariLab / TransitLab. -->
+        <Border Grid.Row="1" Background="{StaticResource BrushBg2}" Padding="16,10,16,10">
+            <StackPanel Orientation="Horizontal" Spacing="14" VerticalAlignment="Center">
+                <Image Source="avares://FluxLab/Assets/FluxLab_logo.png" Width="104" Height="104"/>
+                <StackPanel VerticalAlignment="Center" Spacing="0">
+                    <TextBlock Classes="title" Text="FluxLab"/>
+                    <TextBlock Classes="hint" Text="Aperture photometry &amp; exposure metering for FITS images"/>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+    <Grid Grid.Row="2" ColumnDefinitions="*,380">
+
+        <!-- Image area -->
+        <Grid Grid.Column="0" RowDefinitions="Auto,Auto,*,Auto,Auto" Margin="8">
+            <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="6" Margin="0,0,0,6">
+                <Button Content="Open FITS File" Click="OnOpenClicked" Padding="12,6"/>
+                <Button Content="Open Directory" Click="OnOpenDirectoryClicked" Padding="12,6"/>
+                <Button Content="Zoom In"  Command="{Binding ZoomInCommand}" Padding="10,6"/>
+                <Button Content="Zoom Out" Command="{Binding ZoomOutCommand}" Padding="10,6"/>
+                <Button Content="Fit" Click="OnFitClicked" Padding="10,6"/>
+                <Button Content="1:1" Command="{Binding ZoomOneToOneCommand}" Padding="10,6"/>
+                <TextBlock Text="{Binding ZoomScale, StringFormat='Zoom: {0:P0}'}"
+                           Foreground="#8888bb" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                <TextBlock Text="Scroll wheel = zoom at cursor  |  Middle-drag = pan"
+                           Foreground="#555577" FontStyle="Italic" VerticalAlignment="Center" Margin="12,0,0,0"/>
+            </StackPanel>
+            <Grid Grid.Row="1" ColumnDefinitions="Auto,*" Margin="0,0,0,6">
+                <TextBlock Grid.Column="0" Text="{Binding FileNameText}" Foreground="#8888bb"/>
+                <TextBlock Grid.Column="1" Text="{Binding CursorText}" Foreground="#aaccff"
+                           HorizontalAlignment="Right" FontFamily="Consolas,Menlo,monospace"/>
+            </Grid>
+
+            <Grid Grid.Row="2">
+            <ScrollViewer Name="ImageScroller"
+                          HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
+                          PointerMoved="OnScrollerPointerMoved"
+                          PointerReleased="OnScrollerPointerReleased">
+                <LayoutTransformControl PointerWheelChanged="OnScrollerPointerWheel">
+                    <LayoutTransformControl.LayoutTransform>
+                        <ScaleTransform ScaleX="{Binding ZoomScale}" ScaleY="{Binding ZoomScale}"/>
+                    </LayoutTransformControl.LayoutTransform>
+
+                    <Grid Name="ImageHost" HorizontalAlignment="Left" VerticalAlignment="Top">
+                        <!-- The aperture ring set shrinks with the image when zoomed out and can be
+                             hard to spot. A slow opacity pulse makes it flash like a beacon so the
+                             eye catches it at any zoom. -->
+                        <Grid.Styles>
+                            <Style Selector="Canvas#ApertureOverlay">
+                                <Style.Animations>
+                                    <Animation Duration="0:0:1.3" IterationCount="INFINITE"
+                                               PlaybackDirection="Alternate" Easing="SineEaseInOut">
+                                        <KeyFrame Cue="0%"><Setter Property="Opacity" Value="1.0"/></KeyFrame>
+                                        <KeyFrame Cue="100%"><Setter Property="Opacity" Value="0.35"/></KeyFrame>
+                                    </Animation>
+                                </Style.Animations>
+                            </Style>
+                        </Grid.Styles>
+                        <Image Name="FitsImage" Source="{Binding DisplayImage}" Stretch="None"
+                               HorizontalAlignment="Left" VerticalAlignment="Top"
+                               RenderOptions.BitmapInterpolationMode="None"
+                               PointerPressed="OnImagePointerPressed"
+                               PointerMoved="OnImagePointerMoved"
+                               PointerReleased="OnImagePointerReleased" />
+
+                        <Canvas Name="ApertureOverlay" Width="{Binding DisplayImage.PixelSize.Width}"
+                                Height="{Binding DisplayImage.PixelSize.Height}" IsHitTestVisible="False">
+                            <!-- Each ring is drawn three times with the same glow so the blurred
+                                 halos add up (~3x glow intensity); the last copy carries the crisp
+                                 dashed stroke on top. -->
+                            <Ellipse IsVisible="{Binding ApertureVisible}" Stroke="#33ff66" StrokeThickness="2"
+                                     Canvas.Left="{Binding ApertureLeft}" Canvas.Top="{Binding ApertureTop}"
+                                     Width="{Binding ApertureSize}" Height="{Binding ApertureSize}">
+                                <Ellipse.Effect><DropShadowEffect Color="#33ff66" BlurRadius="8" OffsetX="0" OffsetY="0"/></Ellipse.Effect>
+                            </Ellipse>
+                            <Ellipse IsVisible="{Binding ApertureVisible}" Stroke="#33ff66" StrokeThickness="2"
+                                     Canvas.Left="{Binding ApertureLeft}" Canvas.Top="{Binding ApertureTop}"
+                                     Width="{Binding ApertureSize}" Height="{Binding ApertureSize}">
+                                <Ellipse.Effect><DropShadowEffect Color="#33ff66" BlurRadius="8" OffsetX="0" OffsetY="0"/></Ellipse.Effect>
+                            </Ellipse>
+                            <Ellipse IsVisible="{Binding ApertureVisible}" Stroke="#33ff66" StrokeThickness="2"
+                                     Canvas.Left="{Binding ApertureLeft}" Canvas.Top="{Binding ApertureTop}"
+                                     Width="{Binding ApertureSize}" Height="{Binding ApertureSize}">
+                                <Ellipse.Effect><DropShadowEffect Color="#33ff66" BlurRadius="8" OffsetX="0" OffsetY="0"/></Ellipse.Effect>
+                            </Ellipse>
+
+                            <Ellipse IsVisible="{Binding ApertureVisible}" Stroke="#2a7bff" StrokeThickness="2.4" StrokeDashArray="4,3"
+                                     Canvas.Left="{Binding AnnulusInnerLeft}" Canvas.Top="{Binding AnnulusInnerTop}"
+                                     Width="{Binding AnnulusInnerSize}" Height="{Binding AnnulusInnerSize}">
+                                <Ellipse.Effect><DropShadowEffect Color="#2a7bff" BlurRadius="11" OffsetX="0" OffsetY="0"/></Ellipse.Effect>
+                            </Ellipse>
+                            <Ellipse IsVisible="{Binding ApertureVisible}" Stroke="#2a7bff" StrokeThickness="2.4" StrokeDashArray="4,3"
+                                     Canvas.Left="{Binding AnnulusInnerLeft}" Canvas.Top="{Binding AnnulusInnerTop}"
+                                     Width="{Binding AnnulusInnerSize}" Height="{Binding AnnulusInnerSize}">
+                                <Ellipse.Effect><DropShadowEffect Color="#2a7bff" BlurRadius="11" OffsetX="0" OffsetY="0"/></Ellipse.Effect>
+                            </Ellipse>
+                            <Ellipse IsVisible="{Binding ApertureVisible}" Stroke="#2a7bff" StrokeThickness="2.4" StrokeDashArray="4,3"
+                                     Canvas.Left="{Binding AnnulusInnerLeft}" Canvas.Top="{Binding AnnulusInnerTop}"
+                                     Width="{Binding AnnulusInnerSize}" Height="{Binding AnnulusInnerSize}">
+                                <Ellipse.Effect><DropShadowEffect Color="#2a7bff" BlurRadius="11" OffsetX="0" OffsetY="0"/></Ellipse.Effect>
+                            </Ellipse>
+
+                            <Ellipse IsVisible="{Binding ApertureVisible}" Stroke="#ff3344" StrokeThickness="2.4" StrokeDashArray="4,3"
+                                     Canvas.Left="{Binding AnnulusOuterLeft}" Canvas.Top="{Binding AnnulusOuterTop}"
+                                     Width="{Binding AnnulusOuterSize}" Height="{Binding AnnulusOuterSize}">
+                                <Ellipse.Effect><DropShadowEffect Color="#ff3344" BlurRadius="11" OffsetX="0" OffsetY="0"/></Ellipse.Effect>
+                            </Ellipse>
+                            <Ellipse IsVisible="{Binding ApertureVisible}" Stroke="#ff3344" StrokeThickness="2.4" StrokeDashArray="4,3"
+                                     Canvas.Left="{Binding AnnulusOuterLeft}" Canvas.Top="{Binding AnnulusOuterTop}"
+                                     Width="{Binding AnnulusOuterSize}" Height="{Binding AnnulusOuterSize}">
+                                <Ellipse.Effect><DropShadowEffect Color="#ff3344" BlurRadius="11" OffsetX="0" OffsetY="0"/></Ellipse.Effect>
+                            </Ellipse>
+                            <Ellipse IsVisible="{Binding ApertureVisible}" Stroke="#ff3344" StrokeThickness="2.4" StrokeDashArray="4,3"
+                                     Canvas.Left="{Binding AnnulusOuterLeft}" Canvas.Top="{Binding AnnulusOuterTop}"
+                                     Width="{Binding AnnulusOuterSize}" Height="{Binding AnnulusOuterSize}">
+                                <Ellipse.Effect><DropShadowEffect Color="#ff3344" BlurRadius="11" OffsetX="0" OffsetY="0"/></Ellipse.Effect>
+                            </Ellipse>
+                        </Canvas>
+                    </Grid>
+                </LayoutTransformControl>
+            </ScrollViewer>
+
+            <!-- Shown only when no image is loaded; non-hit-testable so it never blocks a drop. -->
+            <TextBlock Text="Drag-and-Drop FITS files and Folders Here"
+                       IsVisible="{Binding DisplayImage, Converter={x:Static ObjectConverters.IsNull}}"
+                       IsHitTestVisible="False"
+                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                       Foreground="#556" FontSize="18" FontStyle="Italic"/>
+            </Grid>
+
+            <!-- Histogram -->
+            <Grid Grid.Row="3" RowDefinitions="Auto,Auto,Auto" Margin="0,8,0,0">
+                <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10">
+                    <TextBlock Text="Histogram" Foreground="#66aaff" FontWeight="Bold" VerticalAlignment="Center"/>
+                    <Button Content="Auto Stretch" Command="{Binding AutoStretchCommand}" Padding="8,3"/>
+                    <TextBlock Text="Drag the red/yellow lines, or use the sliders below"
+                               Foreground="#555577" FontStyle="Italic" VerticalAlignment="Center"/>
+                </StackPanel>
+                <Grid Grid.Row="1" Height="70" Margin="0,4,0,2">
+                    <Image Source="{Binding HistogramImage}" Stretch="Fill" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+                    <Canvas Name="HistogramOverlay" Background="Transparent"
+                            PointerPressed="OnHistogramPointerPressed"
+                            PointerMoved="OnHistogramPointerMoved"
+                            PointerReleased="OnHistogramPointerReleased"
+                            SizeChanged="OnHistogramOverlaySizeChanged">
+                        <Line Name="BlackLine" Stroke="#ff5555" StrokeThickness="2"/>
+                        <Line Name="WhiteLine" Stroke="#ffdd55" StrokeThickness="2"/>
+                    </Canvas>
+                </Grid>
+                <Grid Grid.Row="2" ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto,*,Auto" Margin="0,2,0,0">
+                    <TextBlock Grid.Column="0" Text="Black" Foreground="#cccccc" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                    <Button Grid.Column="1" Content="-" Command="{Binding BlackDownCommand}" Padding="6,2" Margin="0,0,4,0"/>
+                    <Slider Grid.Column="2" Minimum="0" Maximum="1" Value="{Binding BlackLevel}"/>
+                    <Button Grid.Column="3" Content="+" Command="{Binding BlackUpCommand}" Padding="6,2" Margin="4,0,16,0"/>
+                    <TextBlock Grid.Column="4" Text="White" Foreground="#cccccc" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                    <Button Grid.Column="5" Content="-" Command="{Binding WhiteDownCommand}" Padding="6,2" Margin="0,0,4,0"/>
+                    <Slider Grid.Column="6" Minimum="0" Maximum="1" Value="{Binding WhiteLevel}"/>
+                    <Button Grid.Column="7" Content="+" Command="{Binding WhiteUpCommand}" Padding="6,2" Margin="4,0,0,0"/>
+                </Grid>
+            </Grid>
+
+            <!-- Sequence playback (Open Directory) -->
+            <Grid Grid.Row="4" ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,*" Margin="0,8,0,0">
+                <Button Grid.Column="0" Content="⏮" Command="{Binding FrameFirstCommand}"
+                        FontSize="16" Padding="10,4" Margin="0,0,4,0"/>
+                <Button Grid.Column="1" Content="|◀" Command="{Binding FramePrevCommand}"
+                        FontSize="16" Padding="10,4" Margin="0,0,4,0"/>
+                <Button Grid.Column="2" Content="{Binding PlayButtonGlyph}" Command="{Binding TogglePlayCommand}"
+                        FontSize="16" Padding="12,4" Margin="0,0,4,0"/>
+                <Button Grid.Column="3" Content="▶|" Command="{Binding FrameNextCommand}"
+                        FontSize="16" Padding="10,4" Margin="0,0,4,0"/>
+                <Button Grid.Column="4" Content="⏭" Command="{Binding FrameLastCommand}"
+                        FontSize="16" Padding="10,4" Margin="0,0,10,0"/>
+                <TextBlock Grid.Column="5" Text="{Binding FrameLabelText}" Foreground="#cccccc"
+                           VerticalAlignment="Center" Margin="0,0,10,0" MinWidth="90"/>
+                <Slider Grid.Column="6" Minimum="0" Maximum="{Binding FrameSliderMaximum}"
+                        Value="{Binding FrameSliderValue}" IsEnabled="{Binding HasSequence}"
+                        VerticalAlignment="Center"/>
+            </Grid>
+        </Grid>
+
+        <!-- Aperture Photometry panel -->
+        <Border Grid.Column="1" Background="#252535" Padding="10">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <!-- Right margin keeps the controls off the scrollbar (the gap is between the
+                     buttons and the scrollbar, not between the pane and the window edge). -->
+                <StackPanel Spacing="3" Margin="0,0,14,0">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="6" Margin="0,0,0,2">
+                        <TextBlock Text="Aperture Photometry" FontWeight="Bold" FontSize="13"
+                                   Foreground="White" VerticalAlignment="Center"/>
+                        <Button Classes="help" Content="?" ToolTip.Tip="What is this?">
+                            <Button.Flyout>
+                                <Flyout>
+                                    <TextBlock MaxWidth="340" TextWrapping="Wrap"
+                                               Text="Click a star to auto-centroid and size an aperture at the radius that maximises SNR (walking the curve of growth). Click-drag an existing aperture to move it without resizing, or type exact radii under Geometry. The Results and Exposure Meter update on every measurement."/>
+                                </Flyout>
+                            </Button.Flyout>
+                        </Button>
+                    </StackPanel>
+                    <TextBlock Text="{Binding InstructionText}" Foreground="#8888bb" FontStyle="Italic"
+                               TextWrapping="Wrap" Margin="0,0,0,4"/>
+
+                    <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,2,0,2">
+                        <Button Content="Plate Solve" Command="{Binding SolveCommand}"
+                                IsEnabled="{Binding !IsSolving}" Padding="8,3"/>
+                        <Button Classes="help" Content="?" ToolTip.Tip="About Plate Solve">
+                            <Button.Flyout>
+                                <Flyout>
+                                    <TextBlock MaxWidth="340" TextWrapping="Wrap"
+                                               Text="Solves this frame via an installed StarFix and writes the WCS into the file. Uses the header's RA/DEC as the hint, or the Find Target name below when the header has none."/>
+                                </Flyout>
+                            </Button.Flyout>
+                        </Button>
+                    </StackPanel>
+                    <TextBlock Text="{Binding SolveStatusText}" Foreground="{Binding SolveStatusColor}"
+                               TextWrapping="Wrap" Margin="0,2,0,6"/>
+
+                    <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,2,0,2">
+                        <TextBlock Text="Find Target" FontWeight="Bold" Foreground="#66aaff" VerticalAlignment="Center"/>
+                        <Button Classes="help" Content="?" ToolTip.Tip="About Find Target">
+                            <Button.Flyout>
+                                <Flyout>
+                                    <TextBlock MaxWidth="340" TextWrapping="Wrap"
+                                               Text="Looks the name up in VSX, then the NASA Exoplanet Archive, then SIMBAD, and places the aperture there (with proper motion applied). Needs a plate-solved frame. The box pre-fills from the frame's OBJECT keyword."/>
+                                </Flyout>
+                            </Button.Flyout>
+                        </Button>
+                    </StackPanel>
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBox Grid.Column="0" Text="{Binding TargetNameText}"
+                                 Watermark="Target name, e.g. TOI-4479 or RR Lyr">
+                            <TextBox.KeyBindings>
+                                <KeyBinding Gesture="Enter" Command="{Binding FindTargetCommand}"/>
+                            </TextBox.KeyBindings>
+                        </TextBox>
+                        <Button Grid.Column="1" Content="Find" Command="{Binding FindTargetCommand}" Margin="4,0,0,0"/>
+                    </Grid>
+                    <TextBlock Text="{Binding TargetStatusText}" Foreground="{Binding TargetStatusColor}"
+                               TextWrapping="Wrap" Margin="0,2,0,6"/>
+
+                    <Grid ColumnDefinitions="Auto,Auto,*,Auto" Margin="0,2,0,2">
+                        <TextBlock Grid.Column="0" Text="Geometry (pixels)" FontWeight="Bold" Foreground="#66aaff" VerticalAlignment="Center"/>
+                        <Button Grid.Column="1" Classes="help" Content="?" Margin="6,0,0,0" ToolTip.Tip="About Geometry">
+                            <Button.Flyout>
+                                <Flyout>
+                                    <TextBlock MaxWidth="340" TextWrapping="Wrap"
+                                               Text="Click a star = re-center + auto-size. Click-drag an existing set = move it without resizing. Or type exact aperture/annulus radii here to override the auto-sizing."/>
+                                </Flyout>
+                            </Button.Flyout>
+                        </Button>
+                        <Button Grid.Column="3" Content="Clear Aperture" Command="{Binding ClearApertureCommand}"
+                                Background="#6a1a1a" Foreground="White" Padding="8,3" VerticalAlignment="Center"/>
+                    </Grid>
+                    <Grid ColumnDefinitions="140,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="3">
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Aperture radius" Foreground="#cccccc" VerticalAlignment="Center"/>
+                        <NumericUpDown Grid.Row="0" Grid.Column="1" Value="{Binding ApertureRadiusValue}"
+                                       Minimum="0.5" Maximum="500" Increment="0.5" FormatString="F1"
+                                       Background="#1e1e30" BorderBrush="#444466" Foreground="White"/>
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Annulus inner" Foreground="#cccccc" VerticalAlignment="Center"/>
+                        <NumericUpDown Grid.Row="1" Grid.Column="1" Value="{Binding AnnulusInnerValue}"
+                                       Minimum="0.5" Maximum="500" Increment="1" FormatString="F1"
+                                       Background="#1e1e30" BorderBrush="#444466" Foreground="White"/>
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Annulus outer" Foreground="#cccccc" VerticalAlignment="Center"/>
+                        <NumericUpDown Grid.Row="2" Grid.Column="1" Value="{Binding AnnulusOuterValue}"
+                                       Minimum="0.5" Maximum="500" Increment="1" FormatString="F1"
+                                       Background="#1e1e30" BorderBrush="#444466" Foreground="White"/>
+                    </Grid>
+
+                    <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,6,0,2">
+                        <TextBlock Text="Camera Profiles" FontWeight="Bold" Foreground="#66aaff" VerticalAlignment="Center"/>
+                        <Button Classes="help" Content="?" ToolTip.Tip="About Camera Profiles">
+                            <Button.Flyout>
+                                <Flyout>
+                                    <TextBlock MaxWidth="340" TextWrapping="Wrap"
+                                               Text="Save your camera's Gain / ADU scale / Full well / Target electrons under a name and reload it later. Your last-used values are also remembered automatically. Stored in %AppData%\SimpleFitsViewer\, so they survive upgrades, reinstalls and rebuilds."/>
+                                </Flyout>
+                            </Button.Flyout>
+                        </Button>
+                    </StackPanel>
+                    <Grid ColumnDefinitions="*,Auto,Auto" RowSpacing="3">
+                        <ComboBox Grid.Column="0" ItemsSource="{Binding ProfileNames}"
+                                  SelectedItem="{Binding SelectedProfileName}" HorizontalAlignment="Stretch"/>
+                        <Button Grid.Column="1" Content="Load" Command="{Binding LoadSelectedProfileCommand}" Margin="4,0,0,0"/>
+                        <Button Grid.Column="2" Content="Delete" Command="{Binding DeleteSelectedProfileCommand}"
+                                Background="#6a1a1a" Margin="4,0,0,0"/>
+                    </Grid>
+                    <Grid ColumnDefinitions="*,Auto" Margin="0,4,0,0">
+                        <TextBox Grid.Column="0" Text="{Binding SaveAsNameText}" Watermark="Profile name, e.g. ASI183MM Pro - gain 111"/>
+                        <Button Grid.Column="1" Content="Save As" Command="{Binding SaveAsProfileCommand}" Margin="4,0,0,0"/>
+                    </Grid>
+
+                    <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,6,0,2">
+                        <TextBlock Text="Gain &amp; Scaling" FontWeight="Bold" Foreground="#66aaff" VerticalAlignment="Center"/>
+                        <Button Classes="help" Content="?" ToolTip.Tip="About Gain &amp; Scaling">
+                            <Button.Flyout>
+                                <Flyout>
+                                    <TextBlock MaxWidth="360" TextWrapping="Wrap"
+                                               Text="Gain (e-/ADU) auto-fills from the header's EGAIN. ADU scale is the bit-shift divisor: 1 for a 16-bit sensor, 16 for a 12-bit sensor stored in a 16-bit file. Full well is the per-pixel saturation ceiling -- leave it blank to auto-derive (min of physical capacity and ADC ceiling x gain). Target electrons is your desired total signal for precision (100,000 -> ~3.4 mmag); it is not a camera property."/>
+                                </Flyout>
+                            </Button.Flyout>
+                        </Button>
+                    </StackPanel>
+                    <Grid ColumnDefinitions="140,*" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="3">
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Gain (e-/ADU)" Foreground="#cccccc" VerticalAlignment="Center"
+                                   ToolTip.Tip="Electrons per ADU. Auto-filled from the FITS header's EGAIN keyword; type it if the header has none."/>
+                        <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding GainText}"/>
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="ADU scale" Foreground="#cccccc" VerticalAlignment="Center"
+                                   ToolTip.Tip="Bit-shift divisor for sensors that pack a lower-bit ADC into a wider file (12-bit in 16-bit = 16). Use 1 for native 16-bit sensors."/>
+                        <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding AduScaleText}"/>
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Full well (e-)" Foreground="#cccccc" VerticalAlignment="Center"
+                                   ToolTip.Tip="Per-pixel saturation ceiling in electrons. Leave blank to auto-derive; a hand-typed value overrides the derivation."/>
+                        <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding FullWellText}"/>
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Target electrons" Foreground="#cccccc" VerticalAlignment="Center"
+                                   ToolTip.Tip="Desired total electrons summed over the aperture, for your precision goal. 100,000 gives ~3.4 mmag. Same for any camera."/>
+                        <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding TargetElectronsText}"/>
+                    </Grid>
+
+                    <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,6,0,2">
+                        <TextBlock Text="Results" FontWeight="Bold" Foreground="#66aaff" VerticalAlignment="Center"/>
+                        <Button Classes="help" Content="?" ToolTip.Tip="About the Results, especially the source rows">
+                            <Button.Flyout>
+                                <Flyout>
+                                    <TextBlock MaxWidth="360" TextWrapping="Wrap"
+                                               Text="The rows ending in 'source' tell you where each measurement setting came from. FluxLab auto-detects Gain, ADU scale and Full well from the FITS header and the pixel data -- but you should confirm they are right for your camera and binning before trusting the electron counts and saturation warning. Each source row has its own [?], and the User Guide's 'Gain, ADU scale, Full well &amp; binning' section explains it in full."/>
+                                </Flyout>
+                            </Button.Flyout>
+                        </Button>
+                    </StackPanel>
+                    <Grid ColumnDefinitions="140,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="2">
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Center (X, Y)" Foreground="#cccccc"/>
+                        <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding CenterText}" Foreground="White" FontWeight="Bold"/>
+                        <TextBlock Grid.Row="10" Grid.Column="0" Text="Center (RA, Dec)" Foreground="#cccccc"/>
+                        <TextBlock Grid.Row="10" Grid.Column="1" Text="{Binding ApertureRaDecText}" Foreground="White" FontWeight="Bold" TextWrapping="Wrap"/>
+                        <TextBlock Grid.Row="11" Grid.Column="0" Text="WCS" Foreground="#cccccc"/>
+                        <TextBlock Grid.Row="11" Grid.Column="1" Text="{Binding WcsStatusText}" Foreground="White" FontWeight="Bold" TextWrapping="Wrap"/>
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Aperture pixels" Foreground="#cccccc"
+                                   ToolTip.Tip="Effective aperture area using fractional-pixel overlap, so it can be non-integer."/>
+                        <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding ApertureCountText}" Foreground="White" FontWeight="Bold"/>
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Sky median/px" Foreground="#cccccc"/>
+                        <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding SkyMedianText}" Foreground="White" FontWeight="Bold"/>
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Sky sigma" Foreground="#cccccc"/>
+                        <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding SkySigmaText}" Foreground="White" FontWeight="Bold"/>
+                        <TextBlock Grid.Row="4" Grid.Column="0" Text="Peak (ADU)" Foreground="#cccccc"/>
+                        <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding PeakText}" Foreground="White" FontWeight="Bold"/>
+                        <StackPanel Grid.Row="5" Grid.Column="0" Orientation="Horizontal" Spacing="4">
+                            <TextBlock Text="Gain source" Foreground="#cccccc" VerticalAlignment="Center"/>
+                            <Button Classes="help" Content="?" ToolTip.Tip="About Gain source">
+                                <Button.Flyout>
+                                    <Flyout>
+                                        <TextBlock MaxWidth="340" TextWrapping="Wrap"
+                                                   Text="Gain (e-/ADU) converts ADU into electrons. It auto-fills from the header's EGAIN keyword when present ('FITS header (EGAIN)'). 'carried over' means this file had no EGAIN, so the previous file's value is being reused -- confirm it matches the camera and gain setting that took this frame. You can type a value in Gain &amp; Scaling to override. Gain is a property of the sensor and gain setting, not the exposure."/>
+                                    </Flyout>
+                                </Button.Flyout>
+                            </Button>
+                        </StackPanel>
+                        <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding GainSourceText}" Foreground="White" FontWeight="Bold" TextWrapping="Wrap"/>
+                        <StackPanel Grid.Row="9" Grid.Column="0" Orientation="Horizontal" Spacing="4">
+                            <TextBlock Text="ADU scale source" Foreground="#cccccc" VerticalAlignment="Center"/>
+                            <Button Classes="help" Content="?" ToolTip.Tip="About ADU scale source">
+                                <Button.Flyout>
+                                    <Flyout>
+                                        <TextBlock MaxWidth="360" TextWrapping="Wrap"
+                                                   Text="ADU scale is a bit-shift divisor. Some cameras have a 12- or 14-bit ADC but store each pixel in a 16-bit file by left-shifting the value (x16 for 12-bit, x4 for 14-bit); dividing by that scale recovers the true ADU before converting to electrons -- skip it and the electron count is inflated by that factor. FluxLab auto-detects it as the largest power-of-two that divides all the pixel values. Binning matters: 2x2 binning that AVERAGES four pixels (e.g. NINA's default) divides the shift by 4, so a 12-bit sensor that reads x16 unbinned shows x4 at 2x2 -- that is correct, not a bug. 'auto-detected' is usually right, but confirm it; use 1 for a native 16-bit sensor."/>
+                                    </Flyout>
+                                </Button.Flyout>
+                            </Button>
+                        </StackPanel>
+                        <TextBlock Grid.Row="9" Grid.Column="1" Text="{Binding AduScaleSourceText}" Foreground="White" FontWeight="Bold" TextWrapping="Wrap"/>
+                        <StackPanel Grid.Row="6" Grid.Column="0" Orientation="Horizontal" Spacing="4">
+                            <TextBlock Text="Full well source" Foreground="#cccccc" VerticalAlignment="Center"/>
+                            <Button Classes="help" Content="?" ToolTip.Tip="About Full well source">
+                                <Button.Flyout>
+                                    <Flyout>
+                                        <TextBlock MaxWidth="360" TextWrapping="Wrap"
+                                                   Text="Full well is the per-pixel saturation ceiling in electrons -- what the meter compares the peak against. 'derived (ADC ceiling x gain)' means FluxLab computed it from BITPIX, ADU scale and gain: the largest signal the ADC can actually record at this gain and binning, which is what really saturates (a datasheet's physical full well is only reachable at the lowest gains, so it would understate saturation). 'manual entry' means you typed it -- clear the field to re-derive, and a hand value above the ADC ceiling is capped. Binning raises it: a 2x2 binned pixel holds about 4x the charge. Confirm it looks right for your camera and binning."/>
+                                    </Flyout>
+                                </Button.Flyout>
+                            </Button>
+                        </StackPanel>
+                        <TextBlock Grid.Row="6" Grid.Column="1" Text="{Binding FullWellSourceText}" Foreground="White" FontWeight="Bold" TextWrapping="Wrap"/>
+                        <TextBlock Grid.Row="7" Grid.Column="0" Text="Colour filter" Foreground="#cccccc"/>
+                        <TextBlock Grid.Row="7" Grid.Column="1" Text="{Binding ColorFilterText}" Foreground="White" FontWeight="Bold" TextWrapping="Wrap"/>
+                        <TextBlock Grid.Row="8" Grid.Column="0" Text="Total electrons" Foreground="#cccccc"
+                                   ToolTip.Tip="Total electrons summed over the whole aperture (not per-pixel, and not capped by Full well)."/>
+                        <TextBlock Grid.Row="8" Grid.Column="1" Text="{Binding TotalElectronsText}" Foreground="White" FontWeight="Bold"/>
+                        <TextBlock Grid.Row="12" Grid.Column="0" Text="Precision" Foreground="#cccccc"
+                                   ToolTip.Tip="Expected photometric precision from the aperture SNR (which includes read noise via the measured background). mmag = 1.0857/SNR; ppt = parts per thousand of flux."/>
+                        <TextBlock Grid.Row="12" Grid.Column="1" Text="{Binding PrecisionText}" Foreground="White" FontWeight="Bold" TextWrapping="Wrap"/>
+                    </Grid>
+
+                    <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,6,0,2">
+                        <TextBlock Text="Exposure Meter" FontWeight="Bold" Foreground="#66aaff" VerticalAlignment="Center"/>
+                        <Button Classes="help" Content="?" ToolTip.Tip="About the Exposure Meter">
+                            <Button.Flyout>
+                                <Flyout>
+                                    <TextBlock MaxWidth="340" TextWrapping="Wrap"
+                                               Text="Rates the exposure for the measured star: GOOD, LOW SIGNAL, EXCESS SIGNAL, TOO FAINT, or NEAR SATURATION -- with a plain-language recommendation and a suggested new exposure time when the header carries EXPTIME/EXPOSURE."/>
+                                </Flyout>
+                            </Button.Flyout>
+                        </Button>
+                    </StackPanel>
+                    <TextBlock Text="{Binding MeterStateText}" Foreground="{Binding MeterColor}"
+                               FontWeight="Bold" FontSize="13" TextWrapping="Wrap"/>
+
+                    <!-- Saturation bar: peak vs full well; static tick at the 85% warn line. -->
+                    <Grid ColumnDefinitions="86,*,Auto" Margin="0,4,0,0">
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                            <TextBlock Text="Saturation" Foreground="#cccccc" FontSize="11" VerticalAlignment="Center"/>
+                            <Button Classes="help" Content="?" ToolTip.Tip="How to read the Saturation meter">
+                                <Button.Flyout>
+                                    <Flyout>
+                                        <TextBlock MaxWidth="340" TextWrapping="Wrap"
+                                                   Text="How full the brightest pixel is. The bar shows the peak pixel as a percentage of Full well (or, if full well is unknown, the ADC ceiling). The tick mark is the 85% near-saturation line -- keep the bar left of it. Green = safe headroom; amber = getting close; red = at or past 85%, so highlights may be clipping and you should shorten the exposure. Blue means the star is too faint for saturation to be a concern. The number on the right is the exact percentage."/>
+                                    </Flyout>
+                                </Button.Flyout>
+                            </Button>
+                        </StackPanel>
+                        <Grid Grid.Column="1" VerticalAlignment="Center">
+                            <ProgressBar Minimum="0" Maximum="100" Value="{Binding SatBarValue}"
+                                         Foreground="{Binding SatBarBrush}" Background="#1e1e30" Height="14"/>
+                            <Grid ColumnDefinitions="0.85*,0.15*" IsHitTestVisible="False">
+                                <Rectangle Grid.Column="1" Width="1" HorizontalAlignment="Left" Fill="#cfe0ff" Opacity="0.8"/>
+                            </Grid>
+                        </Grid>
+                        <TextBlock Grid.Column="2" Text="{Binding SatBarLabel}" Foreground="White" FontSize="11"
+                                   VerticalAlignment="Center" Margin="6,0,0,0" MinWidth="88"/>
+                    </Grid>
+
+                    <!-- Signal bar: electrons vs target; static tick at 0.7x target (70%). -->
+                    <Grid ColumnDefinitions="86,*,Auto" Margin="0,3,0,0">
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                            <TextBlock Text="Signal" Foreground="#cccccc" FontSize="11" VerticalAlignment="Center"/>
+                            <Button Classes="help" Content="?" ToolTip.Tip="How to read the Signal meter">
+                                <Button.Flyout>
+                                    <Flyout>
+                                        <TextBlock MaxWidth="340" TextWrapping="Wrap"
+                                                   Text="How much signal you have collected versus your goal. The bar shows total electrons in the aperture as a percentage of Target electrons (default 100,000); the number on the right is the current multiple of target. The tick mark is 0.7x target. Green = in the good band; amber = below 0.7x, so expose longer; blue = past 3x target, where extra signal mainly costs cadence; red = the star is too faint. Aim to reach the tick without running far past it."/>
+                                    </Flyout>
+                                </Button.Flyout>
+                            </Button>
+                        </StackPanel>
+                        <Grid Grid.Column="1" VerticalAlignment="Center">
+                            <ProgressBar Minimum="0" Maximum="100" Value="{Binding SignalBarValue}"
+                                         Foreground="{Binding SignalBarBrush}" Background="#1e1e30" Height="14"/>
+                            <Grid ColumnDefinitions="0.70*,0.30*" IsHitTestVisible="False">
+                                <Rectangle Grid.Column="1" Width="1" HorizontalAlignment="Left" Fill="#cfe0ff" Opacity="0.8"/>
+                            </Grid>
+                        </Grid>
+                        <TextBlock Grid.Column="2" Text="{Binding SignalBarLabel}" Foreground="White" FontSize="11"
+                                   VerticalAlignment="Center" Margin="6,0,0,0" MinWidth="88"/>
+                    </Grid>
+
+                    <TextBlock Text="{Binding MeterRecommendationText}" Foreground="#dddddd" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+    </Grid>
+    </Grid>
+</Window>

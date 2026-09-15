@@ -16,6 +16,11 @@ public enum ExposureMeterState
     /// check other than TooFaint.</summary>
     NearSaturation,
 
+    /// <summary>Peak pixel is clipped at the ADC maximum -- the star is saturated and its true peak
+    /// is unrecoverable from this frame, so the reduction is estimated from total flux (a lower
+    /// bound) rather than the clamped peak. Checked before everything else.</summary>
+    Saturated,
+
     /// <summary>Total electrons is well under the target -- photon noise is higher than it
     /// needs to be for the exposure time spent.</summary>
     LowSignal,

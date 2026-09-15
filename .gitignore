@@ -28,3 +28,7 @@ Screenshot *.png
 
 # Release build output (self-contained publish + installer/zip artifacts)
 publish/
+
+# Reference screenshots the user drops in for diagnosis (not source)
+Screenshots/
+IMG_*.jpg
