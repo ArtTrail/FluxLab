@@ -1331,7 +1331,7 @@ public partial class MainWindowViewModel : ViewModelBase
             double pct = el / _profile.TargetElectrons * 100.0;
             SignalBarValue = Math.Clamp(pct, 0, 100);
             SignalBarBrush =
-                state == ExposureMeterState.TooFaint ? BarRed :
+                state is ExposureMeterState.TooFaint or ExposureMeterState.Saturated ? BarRed :
                 el > ExposureMeter.TargetHighMult * _profile.TargetElectrons ? BarBlue :
                 pct < ExposureMeter.TargetLowFrac * 100.0 ? BarAmber :
                 BarGreen;
@@ -1343,6 +1343,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private static string StateLabel(ExposureMeterState s) => s switch
     {
         ExposureMeterState.TooFaint => "TOO FAINT",
+        ExposureMeterState.Saturated => "SATURATED",
         ExposureMeterState.NearSaturation => "NEAR SATURATION",
         ExposureMeterState.LowSignal => "LOW SIGNAL",
         ExposureMeterState.ExcessSignal => "EXCESS SIGNAL",
@@ -1351,7 +1352,8 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private static Color StateColor(ExposureMeterState s) => s switch
     {
-        ExposureMeterState.TooFaint or ExposureMeterState.NearSaturation => Color.Parse("#ff5555"),
+        ExposureMeterState.TooFaint or ExposureMeterState.NearSaturation
+            or ExposureMeterState.Saturated => Color.Parse("#ff5555"),
         ExposureMeterState.LowSignal => Color.Parse("#ffcc55"),
         ExposureMeterState.ExcessSignal => Color.Parse("#66aaff"),
         _ => Color.Parse("#55dd77"),

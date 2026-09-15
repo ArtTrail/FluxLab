@@ -78,6 +78,37 @@ public static class ExposureMeter
             return s is null ? "" : $" -- try ~{s.Value:F1}s";
         }
 
+        // ── Saturated (peak clipped) ─────────────────────────────────────────────────────────
+        // Checked FIRST: once the peak pixel hits the ADC ceiling the sensor has clamped it, so
+        // `satPct` is stuck at ~100% no matter how far over the true peak is -- the old
+        // `70/satPct` suggestion then collapses to ~0.7x per pass and the user has to iterate many
+        // times. The true peak is unrecoverable from this frame, but the TOTAL aperture flux is a
+        // strong lower bound on the over-exposure (only the few core pixels clip; the wings are
+        // intact), so we base an aggressive one-step cut on reaching the electron target and tell
+        // the user to re-measure the shorter (unsaturated) frame where the calc becomes exact.
+        var adcCeiling = SaturationCeiling(header);
+        bool clipped = adcCeiling is double ceil && aperture.Peak >= 0.995 * ceil;
+        if (clipped)
+        {
+            if (electrons is double totE && targetE is double tgt && totE > 0)
+            {
+                double ratio = tgt / totE;                       // reduce toward the electron target
+                double over = totE / tgt;
+                return new ExposureMeterResult(
+                    ExposureMeterState.Saturated,
+                    "peak clipped at ADC max -- true peak unknown",
+                    $"Saturated: total is ~{over:F0}x your target (a lower bound). Reduce hard"
+                        + $"{SuggestText(ratio)} and re-measure to fine-tune.",
+                    SuggestedSeconds(ratio), electrons, targetE, satPct, satBasis);
+            }
+            return new ExposureMeterResult(
+                ExposureMeterState.Saturated,
+                "peak clipped at ADC max -- true peak unknown",
+                "Saturated: the peak is clipped, so the true over-exposure can't be measured. "
+                    + "Reduce the exposure substantially and re-measure.",
+                null, electrons, targetE, satPct, satBasis);
+        }
+
         if (snr is not null && snr < LowSnrThreshold)
         {
             return new ExposureMeterResult(
@@ -89,7 +120,14 @@ public static class ExposureMeter
 
         if (satPct is not null && satPct >= SaturationWarnPct)
         {
-            double? ratio = satPct > 0 ? 70.0 / satPct : null;
+            // Linear scale on the part of the peak that actually varies with exposure: (peak - sky).
+            // The raw peak includes the bias/sky pedestal, which does not scale, so scaling the whole
+            // peak understates the reduction. sky is taken in the same units as the basis via the
+            // measured peak/sky ratio (electron conversion is linear, so the ratio is unit-free).
+            const double target = 70.0;                          // aim the peak at 70% of the basis
+            double skyFrac = aperture.Peak > 0 ? satPct.Value * aperture.SkyMedian / aperture.Peak : 0.0;
+            double denom = satPct.Value - skyFrac;               // signal% above the sky/bias floor
+            double? ratio = denom > 0 ? (target - skyFrac) / denom : (satPct.Value > 0 ? 70.0 / satPct.Value : null);
             return new ExposureMeterResult(
                 ExposureMeterState.NearSaturation,
                 $"{satPct.Value:F0}% of {satBasis}",
