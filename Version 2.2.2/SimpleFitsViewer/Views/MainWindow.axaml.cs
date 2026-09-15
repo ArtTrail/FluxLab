@@ -52,6 +52,30 @@ public partial class MainWindow : Window
         AddHandler(DragDrop.DropEvent, OnDrop);
     }
 
+    protected override void OnOpened(EventArgs e)
+    {
+        base.OnOpened(e);
+        ShowWhatsNewIfNeeded();
+    }
+
+    // First launch of a new version: show its Revision History notes once, then never again for
+    // that version (WhatsNewService remembers it). Automatic for every future version.
+    private void ShowWhatsNewIfNeeded()
+    {
+        if (!WhatsNewService.ShouldShow()) return;
+
+        RevisionEntry? entry = null;
+        foreach (var r in RevisionHistoryData.All)
+            if (r.Version == AppVersion.Version) { entry = r; break; }
+
+        if (entry is null) { WhatsNewService.MarkSeen(); return; }   // no notes for this build: don't re-check
+
+        var win = new WhatsNewWindow(entry) { WindowStartupLocation = WindowStartupLocation.CenterOwner };
+        win.Closed += (_, _) => WhatsNewService.MarkSeen();
+        DiagnosticsLog.Log($"[UI] Showing What's New for v{entry.Version}.");
+        win.Show(this);
+    }
+
     // Avalonia 11.3 marks DragEventArgs.Data / DataFormats.Files obsolete in favour of the newer
     // DataTransfer API, but the classic API is still present and fully functional on the pinned
     // 11.3.12, and is what the drag-drop docs/samples still use. Suppressed locally rather than

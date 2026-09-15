@@ -26,6 +26,7 @@ public static class RevisionHistoryData
             "New: opens tile-compressed FITS (.fz) files -- both integer (Rice/GZIP, the usual raw camera output) and float frames (Rice with subtractive-dither quantization, e.g. processed/calibrated frames). Decoded frames were verified pixel-for-pixel against astropy.",
             "New: colormaps. A dropdown in the toolbar (Gray, Viridis, Plasma, Inferno, Magma, Hot) maps brightness to colour, which can make faint structure easier to see. It is a display aid only -- it changes nothing about the pixel values or the photometry, and grayscale stays the default.",
             "New: the frame's Exposure time (from the FITS header) is shown in the Results panel, so you can relate the exposure meter's suggestion to the exposure that produced the frame.",
+            "New: a What's New window on the first launch of each new version, listing that version's changes. Dismiss it once and it won't return until the next update.",
         }),
 
         new RevisionEntry("2.2.1", "2026-09-14", new[]
