@@ -2,6 +2,12 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
+    <!-- Ship the executable as FluxLab.exe (the app's brand) while keeping the code namespace and
+         the %AppData%\SimpleFitsViewer profile folder as SimpleFitsViewer, so saved profiles are
+         untouched. AssemblyName also becomes the avares:// authority, so resource URIs use
+         avares://FluxLab/... -->
+    <AssemblyName>FluxLab</AssemblyName>
+    <RootNamespace>SimpleFitsViewer</RootNamespace>
     <Nullable>enable</Nullable>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>

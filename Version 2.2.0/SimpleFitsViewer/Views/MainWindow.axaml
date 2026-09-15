@@ -7,7 +7,7 @@
         x:Class="SimpleFitsViewer.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Title="FluxLab  v2.2.1"
-        Icon="avares://SimpleFitsViewer/Assets/FluxLab.ico"
+        Icon="avares://FluxLab/Assets/FluxLab.ico"
         Width="1200" Height="780"
         Background="#1e1e2e"
         DragDrop.AllowDrop="True">
@@ -37,7 +37,7 @@
              shared banner in StarFix / VariLab / TransitLab. -->
         <Border Grid.Row="1" Background="{StaticResource BrushBg2}" Padding="16,10,16,10">
             <StackPanel Orientation="Horizontal" Spacing="14" VerticalAlignment="Center">
-                <Image Source="avares://SimpleFitsViewer/Assets/FluxLab_logo.png" Width="104" Height="104"/>
+                <Image Source="avares://FluxLab/Assets/FluxLab_logo.png" Width="104" Height="104"/>
                 <StackPanel VerticalAlignment="Center" Spacing="0">
                     <TextBlock Classes="title" Text="FluxLab"/>
                     <TextBlock Classes="hint" Text="Aperture photometry &amp; exposure metering for FITS images"/>
