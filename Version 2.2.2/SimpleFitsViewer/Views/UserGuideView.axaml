@@ -56,7 +56,7 @@
                     <!-- 1 -->
                     <TextBlock x:Name="Section1" Classes="h2" Text="1. Opening files" Margin="0,16,0,0"/>
                     <TextBlock TextWrapping="Wrap" Text="Open FITS File… loads a single FITS file (.fits/.fit/.fts). Open Directory… loads every FITS file in a folder as a steppable sequence (see Sequence playback)."/>
-                    <TextBlock TextWrapping="Wrap" Text="Tile-compressed files (.fz) open too: integer Rice- and GZIP-compressed frames (typical raw camera output) are decoded automatically. Float-quantized .fz (some processed frames) are not yet supported and open blank."/>
+                    <TextBlock TextWrapping="Wrap" Text="Tile-compressed files (.fz) open too: both integer frames (Rice/GZIP, typical raw camera output) and float frames (Rice with subtractive-dither quantization, e.g. processed frames) are decoded automatically."/>
                     <TextBlock TextWrapping="Wrap" Text="Drag and drop: drop FITS files or a folder anywhere on the window. One file opens on its own; several files, or a dropped folder, open as a steppable sequence. Non-FITS items are ignored."/>
 
                     <!-- 2 -->

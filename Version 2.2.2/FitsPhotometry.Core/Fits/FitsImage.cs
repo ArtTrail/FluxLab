@@ -13,9 +13,10 @@ namespace FitsPhotometry.Core.Fits;
 /// NAXIS=2, so treating "first HDU with NAXIS>=2" as the image would happily decode a table's
 /// bytes as pixels and render garbage.
 ///
-/// Tile-compressed (.fz) images live in a BINTABLE with ZIMAGE=T. Integer RICE_1 and GZIP frames
-/// (the usual raw-camera output) are now decoded via <see cref="CompressedImage"/>; float-quantized
-/// variants (ZQUANTIZ, e.g. SUBTRACTIVE_DITHER_1) are not handled and open as empty rather than noise.
+/// Tile-compressed (.fz) images live in a BINTABLE with ZIMAGE=T and are decoded via
+/// <see cref="CompressedImage"/>: integer RICE_1/GZIP frames and float frames (RICE_1 with
+/// SUBTRACTIVE_DITHER_1/2 or NO_DITHER quantization). HCOMPRESS/PLIO and other exotic variants are
+/// not handled and open as empty rather than noise.
 /// </summary>
 public static class FitsImage
 {

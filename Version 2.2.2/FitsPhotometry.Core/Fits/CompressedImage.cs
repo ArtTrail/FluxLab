@@ -17,6 +17,28 @@ namespace FitsPhotometry.Core.Fits;
 /// </summary>
 public static class CompressedImage
 {
+    private const int N_RANDOM = 10000;
+    private const int ZeroValue = -2147483646;   // SUBTRACTIVE_DITHER_2 marker for a true 0.0 pixel
+
+    // The shared subtractive-dither random table (CFITSIO fits_init_randoms / astropy unquantize.c):
+    // Park-Miller MINSTD, seed=1, value[i] = seed/m after each step. Built once, lazily.
+    private static float[]? _randVal;
+    private static float[] RandVal => _randVal!;
+    private static void EnsureRandoms()
+    {
+        if (_randVal is not null) return;
+        const double a = 16807.0, m = 2147483647.0;
+        var r = new float[N_RANDOM];
+        double seed = 1;
+        for (int i = 0; i < N_RANDOM; i++)
+        {
+            double temp = a * seed;
+            seed = temp - m * (int)(temp / m);
+            r[i] = (float)(seed / m);
+        }
+        _randVal = r;
+    }
+
     // nonzero_count[b] = number of bits to represent b (position of its highest set bit); [0]=0.
     private static readonly int[] NonzeroCount = BuildNonzeroCount();
     private static int[] BuildNonzeroCount()
@@ -33,7 +55,22 @@ public static class CompressedImage
     {
         string Cmp = CardStr(cards, "ZCMPTYPE");
         if (Cmp != "RICE_1" && Cmp != "GZIP_1") return null;      // unsupported compression
-        if (cards.ContainsKey("ZQUANTIZ")) return null;           // float-quantized: not handled yet
+
+        // ZQUANTIZ present => the tiles hold quantized INTEGERS that are turned back into floats
+        // per-tile via ZSCALE/ZZERO columns and (for the dither methods) a shared random table.
+        string quant = CardStr(cards, "ZQUANTIZ");
+        int ditherMethod = quant switch
+        {
+            "" => 0,                     // not quantized: an ordinary integer image
+            "NO_DITHER" => -1,
+            "SUBTRACTIVE_DITHER_1" => 1,
+            "SUBTRACTIVE_DITHER_2" => 2,
+            _ => int.MinValue,           // unknown quantization: unsupported
+        };
+        if (ditherMethod == int.MinValue) return null;
+        bool floatImage = quant.Length > 0;
+        int zdither0 = cards.ContainsKey("ZDITHER0") ? CardInt(cards, "ZDITHER0") : 0;
+        long zblank = cards.ContainsKey("ZBLANK") ? CardInt(cards, "ZBLANK") : long.MinValue;
 
         int zbitpix = CardInt(cards, "ZBITPIX");
         int znaxis  = CardInt(cards, "ZNAXIS");
@@ -68,6 +105,7 @@ public static class CompressedImage
         int tfields = CardInt(cards, "TFIELDS");
         // Find the COMPRESSED_DATA column and its byte offset within a row.
         int colOffset = -1; char descKind = 'P';
+        int zscaleOff = -1, zzeroOff = -1;   // per-tile double columns for float un-quantization
         int off = 0;
         for (int n = 1; n <= tfields; n++)
         {
@@ -75,9 +113,13 @@ public static class CompressedImage
             string ttype = CardStr(cards, $"TTYPE{n}");
             (int width, char kind) = TformWidth(tform);
             if (ttype == "COMPRESSED_DATA") { colOffset = off; descKind = kind; }
+            else if (ttype == "ZSCALE") zscaleOff = off;
+            else if (ttype == "ZZERO")  zzeroOff = off;
             off += width;
         }
         if (colOffset < 0 || (descKind != 'P' && descKind != 'Q')) return null;
+        if (floatImage && (zscaleOff < 0 || zzeroOff < 0)) return null;   // need per-tile scale/zero
+        if (floatImage) EnsureRandoms();
 
         // Read the whole table + heap segment.
         var seg = new byte[dataBytes];
@@ -130,23 +172,55 @@ public static class CompressedImage
                     if (!GzipTile(seg, cStart, (int)nelem, tileVals, npix, bytepix)) return null;
                 }
 
-                // Place the decoded tile into the image, applying BZERO/BSCALE and the signed
-                // interpretation of ZBITPIX.
-                for (int ry = 0; ry < th; ry++)
+                if (floatImage)
                 {
-                    long dst = (long)(y0 + ry) * znx + x0;
-                    int src = ry * tw;
-                    for (int rx = 0; rx < tw; rx++)
+                    // Un-quantize this tile's integers back to float via its own ZSCALE/ZZERO and
+                    // the subtractive-dither sequence (astropy/CFITSIO: iseed=(row-1)%N, row =
+                    // tileIndex + ZDITHER0; per pixel out = (q - rand[nextrand] + 0.5)*scale + zero).
+                    double scale = ReadF64BE(seg, (int)(tileIdx * naxis1 + zscaleOff));
+                    double zero  = ReadF64BE(seg, (int)(tileIdx * naxis1 + zzeroOff));
+                    bool useDither = ditherMethod == 1 || ditherMethod == 2;
+                    int iseed = 0, nextrand = 0;
+                    if (useDither)
                     {
-                        int raw = tileVals[src + rx];
-                        double v = zbitpix switch
+                        long drow = tileIdx + zdither0;
+                        iseed = (int)(((drow - 1) % N_RANDOM + N_RANDOM) % N_RANDOM);
+                        nextrand = (int)(RandVal[iseed] * 500);
+                    }
+                    for (int ry = 0; ry < th; ry++)
+                    {
+                        long dst = (long)(y0 + ry) * znx + x0;
+                        int src = ry * tw;
+                        for (int rx = 0; rx < tw; rx++)
                         {
-                            16 => (short)raw,
-                            32 => raw,
-                            8  => (byte)raw,
-                            _  => raw,
-                        };
-                        pixels[dst + rx] = (float)(bzero + bscale * v);
+                            int q = tileVals[src + rx];
+                            float outv;
+                            if (zblank != long.MinValue && q == zblank) outv = float.NaN;
+                            else if (ditherMethod == 2 && q == ZeroValue) outv = 0f;
+                            else if (useDither) outv = (float)(((double)q - RandVal[nextrand] + 0.5) * scale + zero);
+                            else outv = (float)(q * scale + zero);   // NO_DITHER
+                            pixels[dst + rx] = outv;
+                            if (useDither)
+                            {
+                                nextrand++;
+                                if (nextrand == N_RANDOM) { iseed++; if (iseed == N_RANDOM) iseed = 0; nextrand = (int)(RandVal[iseed] * 500); }
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    // Integer image: signed interpretation of ZBITPIX, then BZERO/BSCALE.
+                    for (int ry = 0; ry < th; ry++)
+                    {
+                        long dst = (long)(y0 + ry) * znx + x0;
+                        int src = ry * tw;
+                        for (int rx = 0; rx < tw; rx++)
+                        {
+                            int raw = tileVals[src + rx];
+                            double v = zbitpix switch { 16 => (short)raw, 32 => raw, 8 => (byte)raw, _ => raw };
+                            pixels[dst + rx] = (float)(bzero + bscale * v);
+                        }
                     }
                 }
             }
@@ -314,6 +388,12 @@ public static class CompressedImage
         long v = 0;
         for (int i = 0; i < 8; i++) v = (v << 8) | a[o + i];
         return v;
+    }
+
+    private static double ReadF64BE(byte[] a, int o)
+    {
+        long bits = ReadI64BE(a, o);
+        return BitConverter.Int64BitsToDouble(bits);
     }
 
     private static bool ReadFully(Stream fs, byte[] buffer)
