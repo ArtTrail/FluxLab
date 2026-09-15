@@ -90,6 +90,10 @@ public partial class MainWindowViewModel : ViewModelBase
     private double _zScaleLo, _zScaleHi;   // precomputed at load; used by AutoStretch
 
     private bool _suppressStretchRender;   // true while auto-stretch sets both levels at once
+
+    // Display colormap (issue #13): a 256-entry lookup per channel, rebuilt when SelectedColormap
+    // changes. Applied only to the on-screen bitmap -- pixel values and photometry are untouched.
+    private byte[] _lutR = new byte[256], _lutG = new byte[256], _lutB = new byte[256];
     private bool _suppressProfileSync;     // true while SyncProfileTextFromResolved is pushing loaded/resolved values into the Text properties
     private bool _suppressGeometrySync;    // true while SyncGeometryTextFromCurrent is pushing centroid/drag-derived values into the Text properties
     private FitsHeader _header = new(new());
@@ -118,6 +122,7 @@ public partial class MainWindowViewModel : ViewModelBase
         DiagnosticsLog.Log($"[App] Loaded {_library.Count} saved camera profile(s).");
         SyncProfileTextFromResolved();
         SyncGeometryTextFromCurrent();
+        (_lutR, _lutG, _lutB) = Colormaps.BuildLut(SelectedColormap);
     }
 
     /// <summary>Saved camera setups the user can pick from, e.g. "ASI183MM Pro - gain 111" --
@@ -247,6 +252,17 @@ public partial class MainWindowViewModel : ViewModelBase
     }
 
     [ObservableProperty] private Bitmap? _displayImage;
+
+    // Colormap selector (issue #13). Display-only; grayscale is the default and the identity map.
+    public System.Collections.Generic.IReadOnlyList<string> ColormapNames { get; } = Colormaps.Names;
+    [ObservableProperty] private string _selectedColormap = "Gray";
+
+    partial void OnSelectedColormapChanged(string value)
+    {
+        (_lutR, _lutG, _lutB) = Colormaps.BuildLut(value);
+        if (_pixels.Length > 0) RenderImage();
+        DiagnosticsLog.Log($"[UI] Colormap -> {value}.");
+    }
     [ObservableProperty] private string _fileNameText = "No file loaded";
     [ObservableProperty] private string _instructionText = "Open a FITS file, then click a star to place an aperture.";
     [ObservableProperty] private double _zoomScale = 1.0;
@@ -293,6 +309,7 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private string _skyMedianText = "—";
     [ObservableProperty] private string _skySigmaText = "—";
     [ObservableProperty] private string _peakText = "—";
+    [ObservableProperty] private string _exposureText = "—";
     [ObservableProperty] private string _aduScaleSourceText = "—";
     [ObservableProperty] private string _gainSourceText = "—";
     [ObservableProperty] private string _fullWellSourceText = "—";
@@ -785,6 +802,7 @@ public partial class MainWindowViewModel : ViewModelBase
         CameraProfileResolver.ResolveGain(_profile, _header);
         CameraProfileResolver.ResolveFullWell(_profile, _header);   // depends on both of the above
         ColorFilterText = CameraProfileResolver.DescribeColorFilter(_header);
+        ExposureText = ExposureMeter.GetExptime(_header) is double expSec ? $"{expSec:0.###} s" : "—";
 
         _wcs = WcsSolution.TryParse(_header);
         WcsStatusText = _wcs is null
@@ -1399,6 +1417,7 @@ public partial class MainWindowViewModel : ViewModelBase
         int rowBytes = fb.RowBytes;
         int width = _width, height = _height;
         var pixels = _pixels;
+        byte[] lutR = _lutR, lutG = _lutG, lutB = _lutB;   // BGRA8888: byte order in memory is B,G,R,A
 
         Parallel.For(0, height, y =>
         {
@@ -1409,9 +1428,9 @@ public partial class MainWindowViewModel : ViewModelBase
                 for (int x = 0; x < width; x++)
                 {
                     float v = pixels[rowOffset + x];
-                    byte g = (byte)Math.Clamp((v - vmin) * scale, 0.0, 255.0);
+                    int g = (int)Math.Clamp((v - vmin) * scale, 0.0, 255.0);
                     int o = x * 4;
-                    row[o + 0] = g; row[o + 1] = g; row[o + 2] = g; row[o + 3] = 255;
+                    row[o + 0] = lutB[g]; row[o + 1] = lutG[g]; row[o + 2] = lutR[g]; row[o + 3] = 255;
                 }
             }
         });

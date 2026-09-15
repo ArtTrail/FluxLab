@@ -13,9 +13,9 @@ namespace FitsPhotometry.Core.Fits;
 /// NAXIS=2, so treating "first HDU with NAXIS>=2" as the image would happily decode a table's
 /// bytes as pixels and render garbage.
 ///
-/// Rice/GZIP tile-compressed (.fz) pixel data is still not decoded (only the header remapping in
-/// FitsHeader.Read is). Such a file's image lives in a BINTABLE with ZIMAGE=T, which this reader
-/// now deliberately skips, so a .fz opens as empty rather than as noise.
+/// Tile-compressed (.fz) images live in a BINTABLE with ZIMAGE=T. Integer RICE_1 and GZIP frames
+/// (the usual raw-camera output) are now decoded via <see cref="CompressedImage"/>; float-quantized
+/// variants (ZQUANTIZ, e.g. SUBTRACTIVE_DITHER_1) are not handled and open as empty rather than noise.
 /// </summary>
 public static class FitsImage
 {
@@ -23,7 +23,8 @@ public static class FitsImage
 
     private sealed record FitsMeta(
         int Bitpix, int Width, int Height, double Bzero, double Bscale,
-        bool IsImage, long DataBytes);
+        bool IsImage, long DataBytes,
+        bool ZImage, System.Collections.Generic.Dictionary<string, string> Cards);
 
     /// <summary>Load the full first image plane as float pixels (BZERO/BSCALE applied), from the
     /// first HDU that actually holds a 2-D image -- primary or extension.</summary>
@@ -37,6 +38,11 @@ public static class FitsImage
             var hdu = ReadMeta(fs);
             if (hdu is null) return new Loaded([], 0, 0);   // end of file, no image found
             if (hdu.IsImage && hdu.Width > 0 && hdu.Height > 0) { meta = hdu; break; }
+
+            // Tile-compressed image (.fz): a BINTABLE with ZIMAGE=T. Decode it in place; if the
+            // compression variant isn't supported, fall back to an empty image (never garbage).
+            if (hdu.ZImage)
+                return CompressedImage.TryDecode(fs, hdu.Cards, hdu.DataBytes) ?? new Loaded([], 0, 0);
 
             // Not an image HDU (or has no pixels) -- skip its data, padded to a 2880 boundary,
             // and try the next one.
@@ -93,9 +99,13 @@ public static class FitsImage
         string xtension = "";
         bool isPrimary = true;
         bool sawAnyCard = false;
+        bool zimage = false;
 
         // NAXISn beyond the first two still count toward the data size when skipping an HDU.
         var axes = new System.Collections.Generic.Dictionary<int, long>();
+        // Every card (trimmed keyword -> raw 80-char card), so a compressed-image HDU can be handed
+        // its full Z*/T* header without ReadMeta needing to know every keyword.
+        var cards = new System.Collections.Generic.Dictionary<string, string>();
 
         var block = new byte[2880];
         var card = new byte[80];
@@ -115,9 +125,10 @@ public static class FitsImage
 
                 var cardStr = System.Text.Encoding.ASCII.GetString(card, 0, 80);
                 var trimKey = key.TrimEnd();
-                if (trimKey.Length > 0) sawAnyCard = true;
+                if (trimKey.Length > 0) { sawAnyCard = true; cards[trimKey] = cardStr; }
 
-                if      (trimKey == "BITPIX")   bitpix = ParseCardInt(cardStr);
+                if      (trimKey == "ZIMAGE")   zimage = ParseCardString(cardStr) == "T";
+                else if (trimKey == "BITPIX")   bitpix = ParseCardInt(cardStr);
                 else if (trimKey == "NAXIS")    naxis  = ParseCardInt(cardStr);
                 else if (trimKey == "NAXIS1") { width  = ParseCardInt(cardStr); axes[1] = width; }
                 else if (trimKey == "NAXIS2") { height = ParseCardInt(cardStr); axes[2] = height; }
@@ -156,7 +167,7 @@ public static class FitsImage
                 ? 0
                 : (long)(Math.Abs(bitpix) / 8) * Math.Max(gcount, 1) * (pcount + elements);
 
-            return new FitsMeta(bitpix, width, height, bzero, bscale, isImage, dataBytes);
+            return new FitsMeta(bitpix, width, height, bzero, bscale, isImage, dataBytes, zimage, cards);
         }
     }
 

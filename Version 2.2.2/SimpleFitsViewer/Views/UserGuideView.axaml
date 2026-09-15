@@ -56,6 +56,7 @@
                     <!-- 1 -->
                     <TextBlock x:Name="Section1" Classes="h2" Text="1. Opening files" Margin="0,16,0,0"/>
                     <TextBlock TextWrapping="Wrap" Text="Open FITS File… loads a single FITS file (.fits/.fit/.fts). Open Directory… loads every FITS file in a folder as a steppable sequence (see Sequence playback)."/>
+                    <TextBlock TextWrapping="Wrap" Text="Tile-compressed files (.fz) open too: integer Rice- and GZIP-compressed frames (typical raw camera output) are decoded automatically. Float-quantized .fz (some processed frames) are not yet supported and open blank."/>
                     <TextBlock TextWrapping="Wrap" Text="Drag and drop: drop FITS files or a folder anywhere on the window. One file opens on its own; several files, or a dropped folder, open as a steppable sequence. Non-FITS items are ignored."/>
 
                     <!-- 2 -->
@@ -63,6 +64,7 @@
                     <TextBlock TextWrapping="Wrap" Text="Zoom In / Zoom Out / Fit / 1:1 are on the toolbar. The scroll wheel zooms in and out centred on the cursor, and a middle-mouse drag pans the image."/>
                     <TextBlock TextWrapping="Wrap" Text="Left-click a star to auto-centroid and size an aperture (see Aperture photometry). Left-click-drag an existing aperture to move the whole aperture/annulus set without changing its size."/>
                     <TextBlock TextWrapping="Wrap" Text="The readout beside the filename follows the cursor: X, Y, the pixel value in ADU, plus RA/Dec on a plate-solved frame (see Plate-solved frames)."/>
+                    <TextBlock TextWrapping="Wrap" Text="The colormap dropdown (Gray, Viridis, Plasma, Inferno, Magma, Hot) changes how brightness is shown on screen. It is a viewing aid only — it does not change the pixel values or the photometry — and the eye distinguishes more colours than grey levels, so a false-colour map can make faint structure easier to spot. Grayscale is the default and the best choice for actually measuring."/>
 
                     <!-- 3 -->
                     <TextBlock x:Name="Section3" Classes="h2" Text="3. Histogram and stretch" Margin="0,16,0,0"/>

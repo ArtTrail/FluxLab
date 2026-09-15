@@ -23,6 +23,9 @@ public static class RevisionHistoryData
         {
             "Changed: the exposure meter now converges on a saturated star in one step instead of many. When the brightest pixel is clipped at the sensor's maximum, the true peak is unknown, so the app now bases an aggressive reduction on the total light collected (a lower bound on how far over-exposed you are) and flags the frame as SATURATED -- one shorter exposure clears it, and re-measuring that frame gives an exact suggestion. Previously it could only trim ~30% per attempt, so a badly over-exposed star took several tries.",
             "Changed: for a bright-but-not-clipped star (NEAR SATURATION), the suggested exposure is now scaled on the signal above the sky/bias floor rather than the raw peak, so the recommendation lands on target in a single step.",
+            "New: opens tile-compressed FITS (.fz) files. Rice-compressed (RICE_1) and GZIP integer frames -- the usual raw camera output -- now decode and display like any other frame, verified pixel-for-pixel against astropy. (Float-quantized .fz, e.g. some processed frames, still open empty for now.)",
+            "New: colormaps. A dropdown in the toolbar (Gray, Viridis, Plasma, Inferno, Magma, Hot) maps brightness to colour, which can make faint structure easier to see. It is a display aid only -- it changes nothing about the pixel values or the photometry, and grayscale stays the default.",
+            "New: the frame's Exposure time (from the FITS header) is shown in the Results panel, so you can relate the exposure meter's suggestion to the exposure that produced the frame.",
         }),
 
         new RevisionEntry("2.2.1", "2026-09-14", new[]
