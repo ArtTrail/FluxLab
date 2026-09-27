@@ -17,9 +17,10 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO="$SCRIPT_DIR/repo"
 VERSION="2.2.2"
 APP_NAME="FluxLab"
-# Source lives in the per-version folder (per-version subfolders started at v2.2.2; v2.2.0..v2.2.1
-# shared the "Version 2.2.0" folder). Update SRCDIR on each new version.
-SRCDIR="Version 2.2.2"
+# Repo layout was flattened 2026-09-27: the current source now lives at the repository ROOT
+# (no per-version folders in the repo). So SRCDIR is "." here. The workspace still keeps the
+# active source under "Version X.Y.Z\", but this script builds from a fresh clone of the repo.
+SRCDIR="."
 
 echo ""
 echo "FluxLab v$VERSION -- macOS build ($ARCH)"
